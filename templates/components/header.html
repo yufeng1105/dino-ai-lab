@@ -1,0 +1,35 @@
+<link rel="stylesheet" href="/static/layout.css">
+<script src="/static/utils.js"></script>
+<div class="header">
+    <div class="header-left">
+        <a href="/" class="header-title" style="text-decoration:none;">AI玩转小恐龙实验室</a>
+    </div>
+    <div class="header-center">{{ header_title }}</div>
+    <div class="header-right">
+        你好，{% if user_id == 'teacher_admin' %}教师{% else %}{{ user_id }}{% endif %} <a href="/logout" style="color:#e74c3c; margin-left:15px; text-decoration:none; font-weight:bold;">[退出]</a>
+    </div>
+</div>
+
+<!-- 适配 iframe 内嵌至 PPT 时的左右翻页逻辑 -->
+<script>
+document.addEventListener('keydown', function(e) {
+    // 焦点在输入框时不触发翻页（如填写弹幕时），虽然本页面没有但保险起见加个判断
+    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') {
+        return;
+    }
+    
+    if (e.key === 'ArrowLeft' || e.keyCode === 37) {
+        if (window.parent && window.parent !== window && window.parent.Reveal) {
+            e.preventDefault();
+            window.parent.focus(); // 将焦点交回给父级课件
+            window.parent.Reveal.left();
+        }
+    } else if (e.key === 'ArrowRight' || e.keyCode === 39) {
+        if (window.parent && window.parent !== window && window.parent.Reveal) {
+            e.preventDefault();
+            window.parent.focus(); // 将焦点交回给父级课件
+            window.parent.Reveal.right();
+        }
+    }
+});
+</script>

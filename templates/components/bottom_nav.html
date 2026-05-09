@@ -1,0 +1,43 @@
+<!-- 底部任务导航栏 -->
+<div class="bottom-nav">
+    <div class="nav-item {% if active_nav == 'sym' %}active{% endif %}" onclick="navigateTask('sym', '/task/sym')">
+        实验1
+    </div>
+    <div class="nav-item {% if active_nav == 'sl' %}active{% endif %}" onclick="navigateTask('sl', '/task/sl')">
+        实验2
+    </div>
+    <div class="nav-item {% if active_nav == 'rl' %}active{% endif %}" onclick="navigateTask('rl', '/task/rl_dashboard')">
+        实验3
+    </div>
+</div>
+
+<script>
+async function navigateTask(taskName, targetUrl) {
+    // 教师权限直接跳转
+    if ('{{ role }}' === 'teacher') {
+        window.location.href = targetUrl;
+        return;
+    }
+    
+    try {
+        const resp = await fetch(`/api/task_state/${taskName}?t=${new Date().getTime()}`, { cache: 'no-store' });
+        const data = await resp.json();
+        if (data.unlocked) {
+            window.location.href = targetUrl;
+        } else {
+            if (typeof showToast === 'function') {
+                showToast('该任务暂未开启，请等待教师解锁！', 'warning');
+            } else {
+                alert('该任务暂未开启，请等待教师解锁！');
+            }
+        }
+    } catch (e) {
+        console.error('获取任务状态失败:', e);
+        if (typeof showToast === 'function') {
+            showToast('无法获取任务状态，请重试！', 'error');
+        } else {
+            alert('无法获取任务状态，请重试！');
+        }
+    }
+}
+</script>

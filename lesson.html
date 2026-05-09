@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>人工智能的产生与发展 - 课件</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Reveal.js 核心及默认白净主题 -->
+    <link rel="stylesheet" href="/static/lib/reveal/reset.min.css">
+    <link rel="stylesheet" href="/static/lib/reveal/reveal.min.css">
+    <link rel="stylesheet" href="/static/lib/reveal/theme_simple.min.css">
+    
+    <style>
+        /* ==================================
+           极简科技风：暗黑主题
+           与网站保持一致的设计语言
+           ================================== */
+        
+        .reveal {
+            font-family: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+            color: #ecf0f1; /* 浅色文字 */
+        }
+        
+        .reveal .slide-background {
+            /* 类似图片中的深空科技蓝网格/渐变背景 */
+            background: radial-gradient(circle at center, #1b2741 0%, #080b11 100%);
+        }
+        
+        /* 标题统一左对齐，去除默认全大写，保持字体克制 */
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: none;
+            text-align: left;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        
+        .reveal h1 {
+            font-size: 2.2em; /* 调小字号避免换行，原为2.8em */
+            margin-bottom: 0.5em;
+            letter-spacing: 4px; /* 增加一点字间距，显得更大气 */
+        }
+        
+        .reveal h2 {
+            font-size: 1.3em; /* 调小标题尺寸 */
+            border-left: 6px solid #4facfe; /* 增加左侧亮蓝高亮条 */
+            padding-left: 15px;
+            margin-bottom: 1em;
+        }
+        
+        /* 正文与列表，左对齐，增加行距呼吸感 */
+        .reveal p, .reveal li {
+            font-size: 0.9em;
+            line-height: 1.8;
+            text-align: left;
+        }
+
+        .reveal li {
+            margin-bottom: 0.5em;
+        }
+        
+        /* 封面页特殊居中对齐 */
+        .cover-slide h1, .cover-slide p {
+            text-align: center !important;
+            border-left: none;
+            padding-left: 0;
+            font-weight: bold;
+        }
+        
+        .cover-slide .subtitle {
+            color: #a0b2c6;
+            font-size: 1.2em;
+            margin-top: 1em;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        /* 强调文字与高亮主题色系列 */
+        .highlight {
+            color: #4facfe; /* 科技蓝默认 */
+            font-weight: bold;
+        }
+        .highlight-green {
+            color: #10b981; /* 翠绿色 */
+            font-weight: bold;
+        }
+        .highlight-yellow {
+            color: #fbbf24; /* 琥珀黄 */
+            font-weight: bold;
+        }
+        .highlight-red {
+            color: #fca5a5; /* 警告红 */
+            font-weight: bold;
+        }
+        
+        .box {
+            background: rgba(255, 255, 255, 0.05); /* 半透明暗色框 */
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            text-align: left;
+        }
+
+        /* 将控制翻页的箭头改为白色，避免深色背景下看不清 */
+        .reveal .controls,
+        .reveal .progress {
+            color: #ffffff !important;
+        }
+
+        /* 图片网格布局 */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .image-card {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent; /* 取消外框背板 */
+            border-radius: 24px; 
+            aspect-ratio: 1.35; /* 恢复为长方形比例，并通过等分宽比强制三者高度完美对齐 */
+            overflow: hidden;
+            box-shadow: none; /* 取消外框阴影 */
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            margin: 0 !important; /* 强制覆盖 Reveal 默认的图片边距 */
+            border-radius: 24px !important; /* 强制给内部图片也加上圆角 */
+            display: block;
+        }
+
+        /* 针对多Logo的特殊卡片 */
+        .logo-card {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            gap: 15px; /* 控制四个Logo之间的间距 */
+            padding: 0; /* 取消卡片自身的留白使其与周围卡片等高齐平 */
+            background: transparent !important; /* 取消纯黑外框背板！让内部Icon独立成块 */
+            box-shadow: none !important; /* 取消大容器的阴影 */
+        }
+        
+        /* 为了方便内部Logo单独缩放，将白底外框从img移到包裹它的div容器上 */
+        .logo-item {
+            width: 100%;
+            height: 100%;
+            border-radius: 22px;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            overflow: hidden; /* 超出圆角边框的部分会被裁切 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px; /* 让内部Logo有安全呼吸距离 */
+        }
+
+        .logo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 保证图标全显示 */
+            background: transparent;
+            box-shadow: none;
+            padding: 0; 
+            min-height: 0; /* 防止格子由于图片撑开 */
+        }
+
+        /* ----- 网站主页/便当导航风格 (用于引流到各个实验室) ----- */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .portal-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 30px 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .portal-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #4facfe;
+            cursor: pointer;
+        }
+
+        .portal-icon {
+            font-size: 3.5em; /* Emoji 或 SVG 作为图标 */
+            margin-bottom: 20px;
+        }
+
+        .portal-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .portal-desc {
+            font-size: 0.75em !important;
+            line-height: 1.6 !important;
+            color: #a0b2c6 !important;
+            text-align: justify !important;
+            margin-bottom: 30px !important;
+            flex-grow: 1;
+        }
+
+        .portal-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #fff;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 0.8em;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,242,254,0.3);
+            transition: transform 0.2s;
+        }
+        
+        .portal-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- 第1页：人工智能的产生与发展 -->
+            <section class="cover-slide">
+                <div style="margin-top: 15vh;">
+                    <h1>人工智能的产生与发展</h1>
+                    <p class="subtitle" style="margin-top: 0.5em; font-size: 0.9em; letter-spacing: 2px; color: #a0b2c6; font-weight: 300;">
+                        —— 一只小恐龙走遍人工智能的发展历程 ——
+                    </p>
+                </div>
+                <div style="margin-top: 5em; font-size: 0.7em; color: rgba(255,255,255,0.4);">
+                    <p style="margin-bottom: 0.3em;">周宇峰</p>
+                    <p style="margin-top: 0;">2026年5月8日</p>
+                </div>
+                
+                <aside class="notes">
+                    【教师逐字稿】
+                    同学们好！上课前我们先看大屏幕上的这个小家伙，大家眼熟吗？对，这就是谷歌浏览器断网时弹出的那个隐藏小彩蛋。今天这节课，我们要想办法——给这只小恐龙安上一个“人工智能的大脑”！
+                </aside>
+            </section>
+
+            <!-- 第2页：人工智能：以机器（计算机）为载体模仿、延伸和扩展人类智能 -->
+            <section>
+                <div style="width: 100%; margin: 0 auto; text-align: center;">
+                    <h2 style="font-size: 1.15em; white-space: nowrap;">人工智能：以机器（计算机）为载体<br>模仿、延伸和扩展人类智能</h2>
+                </div>
+                
+                <div class="image-grid" style="margin-top: 30px;">
+                    <!-- 1. 游戏AI (AlphaGo) -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div class="image-card" style="width: 100%;">
+                            <img src="static/assets/ai_images/alphago.jpg" alt="AlphaGo" />
+                        </div>
+                        <span style="font-size: 0.85em; font-weight: bold; color: #cbd5e1; letter-spacing: 1px;">AlphaGo</span>
+                    </div>
+                    <!-- 2. 人脸识别 -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div class="image-card" style="width: 100%;">
+                            <img src="static/assets/ai_images/face.webp" alt="人脸识别" />
+                        </div>
+                        <span style="font-size: 0.85em; font-weight: bold; color: #cbd5e1; letter-spacing: 1px;">人脸识别</span>
+                    </div>
+                    <!-- 3. 大模型 (豆包 + 千问 + ChatGPT + Kimi) -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div class="image-card logo-card" style="width: 100%;">
+                            <div class="logo-item">
+                                <img src="static/assets/ai_images/chatgpt.jpg" alt="ChatGPT" title="ChatGPT" style="transform: scale(1.4);" />
+                            </div>
+                            <div class="logo-item">
+                                <img src="static/assets/ai_images/doubao.jpg" alt="豆包" title="豆包" />
+                            </div>
+                            <div class="logo-item">
+                                <img src="static/assets/ai_images/kimi.jpg" alt="Kimi" title="Kimi" style="transform: scale(1.7);" />
+                            </div>
+                            <div class="logo-item">
+                                <img src="static/assets/ai_images/qianwen.webp" alt="通义千问" title="通义千问" style="transform: scale(1.3);" />
+                            </div>
+                        </div>
+                        <span style="font-size: 0.85em; font-weight: bold; color: #cbd5e1; letter-spacing: 1px;">大模型</span>
+                    </div>
+                </div>
+                
+                <aside class="notes">
+                    【教师逐字稿】
+                    大家有没有想过，其实人工智能早在很多年前就已经潜入我们的生活了。比如大家听说过的能够战胜人类围棋冠军的 AlphaGo；我们每天进出小区和学校都会用到的人脸识别；再比如大家常用的 ChatGPT、Kimi、豆包等各种大语言模型，能陪我们聊天、帮我们写作业。大家想一想，除此以外，你们还在哪里感受到过 AI 的存在呢？
+                </aside>
+            </section>
+
+            <!-- 第3页：路上越来越多的无人车 -->
+            <section>
+                <div style="width: 90%; margin: 0 auto; text-align: center;">
+                    <h2>路上越来越多的无人车</h2>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; gap: 20px; width: 95%; margin: 40px auto 0;">
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                        <img src="static/assets/ai_images/autopilot1.gif" alt="无人驾驶1" style="height: 250px; object-fit: cover; width: 100%; border-radius: 12px; margin: 0; display: block;" />
+                        <div style="margin-top: 15px; font-size: 0.8em; font-weight: bold; color: #ecf0f1; letter-spacing: 2px;">无人出租车</div>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                        <img src="static/assets/ai_images/autopilot2.webp" alt="无人驾驶2" style="height: 250px; object-fit: cover; width: 100%; border-radius: 12px; margin: 0; display: block;" />
+                        <div style="margin-top: 15px; font-size: 0.8em; font-weight: bold; color: #ecf0f1; letter-spacing: 2px;">无人快递车</div>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                        <img src="static/assets/ai_images/autopilot3.gif" alt="无人驾驶3" style="height: 250px; object-fit: cover; width: 100%; border-radius: 12px; margin: 0; display: block;" />
+                        <div style="margin-top: 15px; font-size: 0.8em; font-weight: bold; color: #ecf0f1; letter-spacing: 2px;">无人公交车</div>
+                    </div>
+                </div>
+                
+                <aside class="notes">
+                    【教师逐字稿】
+                    大家看大屏幕，仅仅过去短短几年，我们就见证了无人驾驶技术的飞速发展。
+                    从最开始还需要安全员随时接管的测试车，到现在甚至能灵活穿梭在复杂城市晚高峰的全自动驾驶车辆，它们正在颠覆我们的认知。
+                    这种惊人进步速度背后的本质，就是我们今天要探讨的机器“智能”。
+                </aside>
+            </section>
+
+            <!-- 第4页：如何实现无人驾驶的AI? -->
+            <section>
+                <h2>如何实现无人驾驶的AI?</h2>
+                <h2 class="fragment">现在能发展出无人驾驶AI的原因？</h2>
+                <h2 class="fragment">AI玩转小恐龙实验室——实验1</h2>
+                <aside class="notes">
+                    【教师逐字稿】
+                    首先，让我们进入1号实验室——符号主义的专属场地。看看屏幕上这只可爱的小恐龙，我们要当一回严谨的程序员，用代码告诉它：距离仙人掌多远应该起跳、跳跃的高度应该是多少。让我们看看写满人类规则的“大脑”，能带它跑多远！
+                </aside>
+            </section>
+
+            <!-- 嵌入：符号主义互动实验页 (/task/sym) -->
+            <!-- 第5页：实验或演示页面: /task/sym -->
+            <section data-background-iframe="/task/sym" data-background-interactive>
+                <!-- 空内容，由背景的 iframe 渲染符号主义任务界面，教师用来演示 -->
+                <aside class="notes">
+                    【教师逐字稿】
+                    （教师在大屏上进行操作演示）大家看，我们在这里通过编写如果...就...的规则，让恐龙实现跳跃。大家也在自己的电脑上试一试调整起跳距离。
+                </aside>
+            </section>
+
+            <!-- 提问互动页：思考与改进 -->
+            <!-- 第6页：实验1任务 -->
+            <section>
+                <h2>实验1任务</h2>
+                <div class="box" style="margin-top: 40px; padding: 40px;">
+                    <p style="font-size: 1.0em; color: #ffffff; margin-bottom: 30px;">
+                        <span class="highlight">1. </span>分别体验手玩和 AI 控制的小恐龙
+                    </p>
+                    <p style="font-size: 1.0em; color: #ffffff;">
+                        <span class="highlight">2. </span>思考 AI 控制的小恐龙有什么问题，如何改进？
+                    </p>
+                </div>
+                <aside class="notes">
+                    【教师逐字稿】
+                    现在请同学们进入实验1的页面，自己先用手玩一下，然后开启AI控制对比一下。
+                    同时开动脑筋想一想，目前咱们这个靠着固定规则来跳跃的小恐龙，遇到了什么问题呢？如果是你，你会如何改进这个机制让它跑得更远？一会我们请同学来分享一下你的思考。
+                </aside>
+            </section>
+
+            <!-- 嵌入：再次展示符号主义互动实验页 (/task/sym) 用于讲解 -->
+            <!-- 第7页：实验或演示页面: /task/sym -->
+            <section data-background-iframe="/task/sym" data-background-interactive>
+                <!-- 空内容，由背景的 iframe 渲染符号主义任务界面，教师用来演示 -->
+                <aside class="notes">
+                    【教师逐字稿】
+                    很好，大家刚才的想法都很不错！我们再回到实验1。可以看到仅仅设定一个固定的距离是不够的。小恐龙跑得越快，我们需要起跳的距离应该越远；而且仙人掌有高有矮、有宽有窄，甚至还有天上飞的小鸟，这些都是单个固定规则很难覆盖的。
+                </aside>
+            </section>
+
+            <!-- 第8页：📜 符号主义：起始于1950年代 -->
+            <section>
+                <div style="width: 112%; margin-left: -6%; text-align: left;">
+                    <h2 style="margin-bottom: 20px;">📜 符号主义：起始于1950年代</h2>
+                </div>
+                
+                <div style="width: 120%; margin-left: -10%; display: flex; gap: 40px; text-align: left; align-items: stretch;">
+                    <!-- 左侧：文字讲解（卡片化风格） -->
+                    <div style="flex: 1.5; background: rgba(255, 255, 255, 0.04); border-radius: 24px; padding: 25px; display: flex; flex-direction: column; justify-content: flex-start; gap: 25px;">
+                        <ul style="font-size: 0.65em; line-height: 1.6; margin: 0; padding-left: 20px; color: #cbd5e1;">
+                            <li style="margin-bottom: 15px;">
+                                <strong style="color: #fff;">核心思想</strong><br>
+                                学习或者其他的智能特征原则上均可以被<strong style="color: #60a5fa;">符号</strong>精确地描述，从而被机器仿真<br>
+                                智能行为就是对<strong style="color: #60a5fa;">符号</strong>的推理和运算<br>
+                            </li>
+                        </ul>
+                        <div class="fragment fade-up" style="padding: 15px; margin-top: 15px; background: rgba(231, 76, 60, 0.15); border-left: 4px solid #e74c3c; border-radius: 8px; font-size: 0.5em; line-height: 1.5; white-space: nowrap;">
+                            小恐龙躲避仙人掌规则<br>
+                            IF 距离仙人掌较近 THEN 跳跃
+                        </div>
+                        <div class="fragment fade-up" style="padding: 15px; margin-top: 15px; background: rgba(59, 130, 246, 0.15); border-left: 4px solid #3b82f6; border-radius: 8px; font-size: 0.5em; line-height: 1.5; white-space: nowrap;">
+                            张三是高二1班的学生<br>
+                            高二1班的信息老师是李老师<br>
+                            <span class="fragment fade-up">张三的信息老师是谁？<br></span>
+                            <span class="fragment fade-up">=> 李老师</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：应用举例 (纯净图文模块无边框) -->
+                    <div style="flex: 1.8; display: flex; flex-direction: column; gap: 20px; justify-content: center;">
+                        <h3 class="fragment fade-up" style="color: #4facfe; font-size: 0.9em; text-align: center; margin-bottom: 5px;">无人驾驶规则?</h3>
+                        <h3 class="fragment fade-up" style="color: #4facfe; font-size: 0.9em; text-align: center; margin-bottom: 5px;">交通规则：红灯停、绿灯行……</h3>
+                        <h3 class="fragment fade-up" style="color: #4facfe; font-size: 0.9em; text-align: center; margin-bottom: 5px;">现实路况极为复杂<br>难以<span style="color: gold;">穷举</span>所有规则</h3>
+                        <h3 class="fragment fade-up" style="color: #4facfe; font-size: 0.9em; text-align: center; margin-bottom: 5px;">路标、行人、车辆的<span style="color: gold;">图像识别</span><br>难以用符号规则表示</h3>
+                    </div>
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    让我们先来看第一个流派：符号主义。课本里提到，符号主义认为，人的思维过程就是对大脑中各种抽象符号的处理。怎么理解呢？
+                    大家看左边，它的精髓就在于两块拼图：“知识库”和“推理机”。简单来说，就是如果人类顶尖专家把所有的经验写成各种规则全存进电脑里，当机器遇到问题时，就可以用这些“If...Then”去一层层推理。
+                    看右边的大屏幕，如果我们要用几十年前的这种思路去开发一个自动驾驶汽车可以怎么写呢？首先得写基础交通规则：如果有红灯，就停车；如果是绿灯，就行走；斑马线有人要礼让。然后在写复杂的规则：怎么变道、怎么超车、怎么在侧方停车……
+                    虽然逻辑看起来非常严密，但是这里有一个致命的问题。遇到极端天气大雪把路面覆盖起怎么办？遇到红绿灯被大树干遮挡怎么办？人类的交通路况千变万化，指望通过程序员写代码穷举是不现实的。所以依靠纯粹编写规则的符号派遇到了极大的瓶颈。
+                </aside>
+            </section>
+
+            <!-- 第9页：符号主义思想易理解、可解释性强 -->
+            <section>
+                <h2>符号主义思想易理解、<span class="highlight-green">可解释性强</span></h2>
+                <h2 class="fragment">难以<span class="highlight-yellow">穷尽</span>、甚至<span class="highlight-red">无法编写</span>规则</h2>
+                <h2 class="fragment">人工智能进入了一段时间的<span class="highlight">低潮</span></h2>
+                <h2 class="fragment">AI玩转小恐龙实验室——实验2</h2>
+                <aside class="notes">
+                    【教师逐字稿】
+                    既然符号主义面临“常识地雷”走不通，那我们就去第二个实验室看看——联结主义场馆。
+                    在这里，我们不再给小恐龙编写死板的跳跃距离判定代码，而是直接投喂海量“别人怎么玩游戏”的历史数据给它的“人工神经网络”。让它自己去“看”出仙人掌和起跳动作之间的隐秘规律！
+                </aside>
+            </section>
+
+            <!-- 实验2互动展示页：联结主义/监督学习 -->
+            <!-- 第10页：实验或演示页面: /task/sl -->
+            <section data-background-iframe="/task/sl" data-background-interactive>
+            </section>
+
+            <!-- 实验2任务布置页 -->
+            <!-- 第11页：实验2任务 -->
+            <section>
+                <h2>实验2任务</h2>
+                <div class="box" style="margin-top: 40px; padding: 30px;">
+                    <p style="font-size: 0.8em; color: #ffffff; margin-bottom: 20px;">
+                        <span class="highlight">1.</span> 手玩2000-5000帧（两人一组，1人吃金币，1人不吃金币）
+                    </p>
+                    <p style="font-size: 0.8em; color: #ffffff; margin-bottom: 20px;">
+                        <span class="highlight">2.</span> 点击“大脑”图标，训练模型（耗时约10秒）
+                    </p>
+                    <p style="font-size: 0.8em; color: #ffffff; margin-bottom: 20px;">
+                        <span class="highlight">3.</span> 开启 AI 控制
+                    </p>
+                    <p style="font-size: 0.8em; color: #ffffff;">
+                        <span class="highlight">4.</span> 实验2的小恐龙 AI 与实验1的有什么区别
+                    </p>
+                </div>
+                <aside class="notes">
+                    【教师逐字稿】
+                    现在请大家进入实验2页面。我们要两人一共小组配合一下：一个人在玩的时候遇到金币尽量去吃，另一个人在玩的时候故意不去吃金币。
+                    两人都玩够两三千帧之后，点击训练按钮。训练大约需要十秒钟，把你的操作数据变成一个神经网络模型。
+                    训练好后开启AI控制，看看你的AI和同桌的AI，在遇到金币时的表现有什么不同？一会请同学来说说你的发现。
+                </aside>
+            </section>
+
+            <!-- 第12页：🧠 联结主义：1980年代兴起，2010年代起火热 -->
+            <section>
+                <h2 style="margin-bottom: 30px; white-space: nowrap; width: 120%; margin-left: -10%;">🧠 联结主义：1980年代兴起，2010年代起火热</h2>
+                
+                <div style="display: flex; gap: 20px; text-align: left; align-items: center; width: 150%; margin-left: -25%;">
+                    <!-- 左侧：文字讲解（卡片化风格） -->
+                    <div style="flex: 0.8; background: rgba(255, 255, 255, 0.04); border-radius: 24px; padding: 15px 20px; display: flex; flex-direction: column;">
+                        <ul style="font-size: 0.58em; line-height: 1.6; margin: 0; padding-left: 20px; color: #cbd5e1;">
+                            <li style="margin-bottom: 15px;"><strong style="color: #fff;">思想：</strong>模仿人类神经元交互进行推理, 即<strong style="color: #f59e0b;">人工神经网络</strong></li>
+                            <li style="margin-bottom: 15px;"><strong style="color: #fff;">原理：</strong>通过<strong style="color: #f59e0b;">标注数据</strong>进行训练，调整内部权重，涌现智能。</li>
+                        </ul>
+                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10b981; border-radius: 8px; font-size: 0.52em;">
+                            💡 深度学习：“端到端”的黑盒
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：人工神经网络原理图 (输入 -> 模型 -> 输出) -->
+                    <div style="flex: 2.5; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 15px;">
+                        
+                        <!-- 1. 训练数据输入端 -->
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div class="fragment" data-fragment-index="1" style="height: 30px; display: flex; align-items: center; font-size: 0.45em; color: #a0b2c6; font-weight: bold; white-space: nowrap; margin: 0;">输入端</div>
+                            <div class="fragment" data-fragment-index="1" style="display: flex; flex-direction: column; gap: 15px;">
+                                <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                    <img src="static/assets/ai_images/car.jpg" alt="Car" style="width: 90px; height: 90px; border-radius: 8px; object-fit: cover; object-position: center 20%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin: 0; display: block;" onerror="this.src='https://via.placeholder.com/100/1a1a2e/ffffff?text=🚗'"/>
+                                </div>
+                                <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                    <img src="static/assets/ai_images/truck.webp" alt="Truck" style="width: 90px; height: 90px; border-radius: 8px; object-fit: cover; object-position: center 20%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin: 0; display: block;" onerror="this.src='https://via.placeholder.com/100/1a1a2e/ffffff?text=🚚'"/>
+                                </div>
+                                <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                    <img src="static/assets/ai_images/bus.jpeg" alt="Bus" style="width: 90px; height: 90px; border-radius: 8px; object-fit: cover; object-position: center 20%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin: 0; display: block;" onerror="this.src='https://via.placeholder.com/100/1a1a2e/ffffff?text=🚌'"/>
+                                </div>
+                                <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                    <img src="static/assets/ai_images/motocycle.webp" alt="Motorcycle" style="width: 90px; height: 90px; border-radius: 8px; object-fit: cover; object-position: center 20%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin: 0; display: block;" onerror="this.src='https://via.placeholder.com/100/1a1a2e/ffffff?text=🏍️'"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="fragment" data-fragment-index="3" style="color: #60a5fa; font-size: 1.2em; font-weight: bold; transform: translateY(18px); margin: 0 10px;">➔</div>
+
+                        <!-- 2. 人工神经网络黑盒 -->
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 340px; margin: 0 0; transform: translateY(18px);">
+                            <img src="static/assets/ai_images/ann.jpg" alt="人工神经网络" style="width: 100%; height: auto; border-radius: 20px; margin: 0 0 15px 0; object-fit: contain; box-shadow: none;" onerror="this.src='https://via.placeholder.com/600x300/1a1a2e/ffffff?text=Artificial+Neural+Network'"/>
+                            <div style="font-size: 0.55em; font-weight: bold; color: #cbd5e1; line-height: 1.4; text-align: center; margin: 0;">
+                                人工神经网络<br>
+                            </div>
+                        </div>
+
+                        <div class="fragment" data-fragment-index="3" style="color: #10b981; font-size: 1.2em; font-weight: bold; transform: translateY(18px); margin: 0 10px;">➔</div>
+
+                        <!-- 3. 双列输出分析区：网络预测(输出端) vs 真实标注 -->
+                        <div style="display: flex; gap: 20px; transform: translateY(18px);">
+                            
+                            <!-- 3A. 输出端 (网络预测过程) -->
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div class="fragment fade-in" data-fragment-index="4" style="height: 30px; display: flex; align-items: center; font-size: 0.45em; color: #f59e0b; font-weight: bold; white-space: nowrap; margin: 0; transform: translateY(-18px);">输出端</div>
+                                <div style="display: flex; flex-direction: column; gap: 15px; transform: translateY(-18px);">
+                                    
+                                    <!-- 行1：(目标是汽车) -->
+                                    <div style="height: 90px; width: 65px; display: grid; place-items: center; margin: 0;">
+                                        <!-- index 4: 货车 (错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="4" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border: 2px dashed rgba(239, 68, 68, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #f87171; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚚
+                                        </div>
+                                        <!-- index 5: 汽车 (对) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="5" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚗
+                                        </div>
+                                        <!-- index 6: 货车 (波动错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="6" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.15); border: 2px dashed rgba(168, 85, 247, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #c084fc; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚚
+                                        </div>
+                                        <!-- index 7~: 汽车 (稳定对) -->
+                                        <div class="fragment fade-in" data-fragment-index="7" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚗
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 行2：(目标是货车) -->
+                                    <div style="height: 90px; width: 65px; display: grid; place-items: center; margin: 0;">
+                                        <!-- index 4, 5: 汽车 (错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="4" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border: 2px dashed rgba(239, 68, 68, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #f87171; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚗
+                                        </div>
+                                        <div class="fragment fade-in-then-out" data-fragment-index="5" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.15); border: 2px dashed rgba(245, 158, 11, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fbbf24; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚗
+                                        </div>
+                                        <!-- index 6~: 货车 (对) -->
+                                        <div class="fragment fade-in" data-fragment-index="6" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.15); border: 2px solid rgba(59, 130, 246, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚚
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 行3：(目标是客车) -->
+                                    <div style="height: 90px; width: 65px; display: grid; place-items: center; margin: 0;">
+                                        <!-- index 4: 货车 (错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="4" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border: 2px dashed rgba(239, 68, 68, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #f87171; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚚
+                                        </div>
+                                        <!-- index 5: 汽车 (错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="5" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border: 2px dashed rgba(239, 68, 68, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #f87171; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚗
+                                        </div>
+                                        <!-- index 6: 客车 (对) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="6" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚌
+                                        </div>
+                                        <!-- index 7: 货车 (退化错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="7" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border: 2px dashed rgba(239, 68, 68, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #f87171; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚚
+                                        </div>
+                                        <!-- index 8~: 客车 (稳定对) -->
+                                        <div class="fragment fade-in" data-fragment-index="8" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚌
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 行4：(目标是摩托车) -->
+                                    <div style="height: 90px; width: 65px; display: grid; place-items: center; margin: 0;">
+                                        <!-- index 4: 客车 (错) -->
+                                        <div class="fragment fade-in-then-out" data-fragment-index="4" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border: 2px dashed rgba(239, 68, 68, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #f87171; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🚌
+                                        </div>
+                                        <!-- index 5, 6, 7: 摩托车 (对) -->
+                                        <div class="fragment fade-in" data-fragment-index="5" style="grid-area: 1/1; display: flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.15); border: 2px solid rgba(168, 85, 247, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap; width: 100%; box-sizing: border-box;">
+                                            🏍️
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3B. 标注端 (正确答案对照组) -->
+                            <div class="fragment" data-fragment-index="2" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <div style="height: 30px; display: flex; align-items: center; font-size: 0.45em; color: #10b981; font-weight: bold; white-space: nowrap; margin: 0; transform: translateY(-18px);">标注</div>
+                                <div style="display: flex; flex-direction: column; gap: 15px; transform: translateY(-18px);">
+                                    <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                        <div style="display: flex; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.15); border: 2px solid rgba(16, 185, 129, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap;">
+                                            🚗
+                                        </div>
+                                    </div>
+                                    <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                        <div style="display: flex; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.15); border: 2px solid rgba(59, 130, 246, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap;">
+                                            🚚
+                                        </div>
+                                    </div>
+                                    <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                        <div style="display: flex; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap;">
+                                            🚌
+                                        </div>
+                                    </div>
+                                    <div style="height: 90px; display: flex; align-items: center; justify-content: center; margin: 0;">
+                                        <div style="display: flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.15); border: 2px solid rgba(168, 85, 247, 0.5); padding: 8px 18px; border-radius: 12px; font-size: 0.9em; font-weight: bold; color: #fff; white-space: nowrap;">
+                                            🏍️
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    看完死记硬背的符号主义，我们来看看当今最火热、也是目前支撑起 AI 爆发大潮的第二大流派——联结主义！
+                    科学家们心想，既然我们要创造智能，为什么不直接模仿最高级的智能体——人类大脑呢？于是，他们用代码写出了“人工神经元”，把它们一张大网连起来，这就是我们常听到的“神经网络”或者“深度学习”。
+                    以前写代码，是我们告诉机器“规则”；现在，机器有了一张巨大的白纸网，我们直接把几十亿、上百亿的数据（像文字、图片）“喂”给它。就像教育小朋友“这是猫、那是狗”，看多了，机器内部的节点权重就会自己发生变化，直到它“顿悟”了猫狗的区别。
+                    大家看大屏幕右侧，从 2016 年横空出世下围棋战胜李世石的 AlphaGo，到今天帮大家写文章、画画的 ChatGPT 和各种大模型，背后全部都是联结主义的超级神经网络在支撑！可以说是仿生大脑的奇迹。
+                </aside>
+            </section>
+
+            <!-- 大语言模型演进页 -->
+            <!-- 第13页：联结主义的应用：大语言模型 -->
+            <section>
+                <div style="width: 100%; text-align: center;">
+                    <h2 style="margin-bottom: 20px;">联结主义的应用：大语言模型</h2>
+                </div>
+
+                <!-- 案例2: 文本大语言模型 -->
+                <div style="width: 110%; margin-left: -5%; background: rgba(16, 185, 129, 0.05); border-radius: 20px; padding: 20px 25px; border-left: 5px solid #10b981; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="flex: 1.2; text-align: left;">
+                        <h3 style="color: #10b981; font-size: 0.8em; margin-bottom: 10px;">💬 大语言模型训练原理</h3>
+                        <div style="font-size: 0.55em; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                            <strong>标注方法：</strong>海量互联网文本的<strong>“词语接龙”</strong><br>
+                            不用手工标记，而是把无数网页文章切碎，<br>
+                            <!-- 下一行文字高亮金色加粗 -->
+                            <span style="color: #facc15; font-weight: bold;">让 AI 看前文猜下一个字</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1.5; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.5em; font-weight: bold;">
+                        <div style="background: rgba(30, 41, 59, 1); padding: 10px; border-radius: 8px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; width: 180px;">
+                            <div class="fragment fade-up" data-fragment-index="1" style="display: flex; justify-content: space-between; border-bottom: 1px solid #475569; padding-bottom: 4px;"><span>床 前 明 月</span><span style="color: #10b981;">光</span></div>
+                            <div class="fragment fade-up" data-fragment-index="2" style="display: flex; justify-content: space-between; border-bottom: 1px solid #475569; padding-bottom: 4px;"><span>床 前 明 月 光</span><span style="color: #10b981;">，</span></div>
+                            <div class="fragment fade-up" data-fragment-index="3" style="display: flex; justify-content: space-between;"><span>床 前 明 月 光 ，</span><span style="color: #10b981;">疑</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fragment fade-up" style="width: 116%; margin-left: -8%; display: flex; justify-content: center; margin-top: 10px;">
+                    <table style="width: 100%; font-size: 0.65em; color: #ecf0f1; border-collapse: collapse; white-space: nowrap;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #4facfe;">
+                                <th style="padding: 15px; text-align: center; color: #4facfe;">版本</th>
+                                <th style="padding: 15px; text-align: center; color: #4facfe;">时间</th>
+                                <th style="padding: 15px; text-align: center; color: #4facfe;">模型参数量</th>
+                                <th style="padding: 15px; text-align: center; color: #4facfe;">训练数据量</th>
+                                <th style="padding: 15px; text-align: center; color: #4facfe;">训练算力消耗</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <td style="padding: 15px; font-weight: bold;">GPT-1</td>
+                                <td style="padding: 15px;">2018年</td>
+                                <td style="padding: 15px;">1.17 亿</td>
+                                <td style="padding: 15px;">5 GB (约7000本书)</td>
+                                <td style="padding: 15px;">显卡机群，数天</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <td style="padding: 15px; font-weight: bold;">GPT-2</td>
+                                <td style="padding: 15px;">2019年</td>
+                                <td style="padding: 15px;">15 亿</td>
+                                <td style="padding: 15px;">40 GB (800万优质网页)</td>
+                                <td style="padding: 15px;">数百张显卡，数周</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <td style="padding: 15px; font-weight: bold; color: #f59e0b;">GPT-3</td>
+                                <td style="padding: 15px;">2020年</td>
+                                <td style="padding: 15px; color: #f59e0b; font-weight: bold;">1750 亿</td>
+                                <td style="padding: 15px;">45 TB (3000亿个单词)</td>
+                                <td style="padding: 15px;">上万张显卡，数月</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 15px; font-weight: bold; color: #10b981;">GPT-4</td>
+                                <td style="padding: 15px;">2023年</td>
+                                <td style="padding: 15px; color: #10b981; font-weight: bold;">约 1.8 万亿</td>
+                                <td style="padding: 15px;">PB级规模 (13万亿个单词)</td>
+                                <td style="padding: 15px;">两万多张顶尖显卡，数月</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    大家可能会问，神经网络这个理论几十年前就有了，为什么这两年才爆发出像 ChatGPT 这样聪明的大模型呢？
+                    答案是大算力和大数据带来的“暴力美学”。大家看大屏幕上的这个表格，这是这几年 GPT 模型的发展史。
+                    2018 年的 GPT-1 只有 1 亿的参数，相当于拥有一个小动物级别的突触连接，当时它连一句完整的话都说不利索。
+                    到了 2020 年的 GPT-3，参数猛增到 1750 亿，相当于塞进去了几乎整个互联网质量好的文章。
+                    而到了大家都熟悉的 GPT-4，更是达到了万亿级的参数，动用了两万多张世界上最昂贵的显卡，在超级计算机里没日没夜地“读书”大半年！
+                    量变最终引起了质变。当机器的“神经网络”庞大到一定程度的时候，原本可能只会顺着说下一句话的它，突然拥有了真正的逻辑思考和创作能力，科学家们把这种现象叫做大模型的“涌现”。
+                </aside>
+            </section>
+
+            <!-- 第14页：如果没有足够的标注数据呢? -->
+            <section>
+                <h2>如果<span class="highlight-red">没有</span>足够的标注数据呢?</h2>
+                <h2 class="fragment">如果只是一味<span class="highlight-yellow">模仿</span>、如何<span class="highlight-green">超越</span>呢？</h2>
+                <h2 class="fragment">AI玩转小恐龙实验室——实验3</h2>
+                <aside class="notes">
+                    【教师逐字稿】
+                    最后，让我们进入实验室的最激动人心的部分——行为主义的专属场地。看看屏幕上这只可爱的小恐龙，接下来它将完全脱离人类的代码指令，也没有海量的历史通关记录可以参考。它将全凭自己的本能，在环境中一遍遍摸爬滚打。每一次越过障碍的得分，每一次撞到仙人掌的惩罚，都在重塑它的“大脑”。这就是我们要亲手体验的强化学习魔法！
+                </aside>
+            </section>
+
+            <!-- 增加：实验3 强化学习面板供学生作答/教师演示 -->
+            <!-- 第15页：实验或演示页面: /task/rl_dashboard -->
+            <section data-background-iframe="/task/rl_dashboard" data-background-interactive>
+            </section>
+
+            <!-- 实验3任务布置页 -->
+            <!-- 第16页：实验3任务 -->
+            <section>
+                <h2>实验3任务</h2>
+                <div class="box" style="margin-top: 40px; padding: 40px;">
+                    <p style="font-size: 1.0em; color: #ffffff; margin-bottom: 30px;">
+                        <span class="highlight">1.</span> 训练模型
+                    </p>
+                    <p style="font-size: 1.0em; color: #ffffff;">
+                        <span class="highlight">2.</span> 观察 AI 小恐龙能力的变化
+                    </p>
+                    <p style="font-size: 1.0em; color: #ffffff;">
+                        <span class="highlight">3.</span> 实验3的小恐龙 AI 与实验1、2的有什么区别
+                    </p>
+                </div>
+                <aside class="notes">
+                    【教师逐字稿】
+                    同学们，现在请进入实验3。大家看到面前有四个正在不断试错的小恐龙。请大家直接点击正中间的“训练模型”按钮。接着仔细观察排在最上面的那只小恐龙，看看随着训练轮数的增加，它的游戏表现发生了什么变化？边看边思考：它为什么会产生这样的变化呢？稍后请同学来交流分享。
+                </aside>
+            </section>
+
+            <!-- 第17页：🏃 行为主义：21世纪以来应用广泛 -->
+            <section>
+                <h2 style="margin-bottom: 30px;">🏃 行为主义：21世纪以来应用广泛</h2>
+                
+                <div style="display: flex; gap: 25px; text-align: left; align-items: center; width: 110%; margin-left: -5%;">
+                    <!-- 左侧：文字讲解（卡片化风格） -->
+                    <div style="flex: 1.8; background: rgba(255, 255, 255, 0.04); border-radius: 24px; padding: 30px; display: flex; flex-direction: column;">
+                        <ul style="font-size: 0.65em; line-height: 1.6; margin: 0; padding-left: 20px; color: #cbd5e1;">
+                            <li style="margin-bottom: 15px;"><strong style="color: #fff;">问题引导下的学习</strong><br>从<strong style="color: #f59e0b;">“交互-反馈”</strong>角度来刻画智能行为，认为智能体可以在与环境的交互中不断学习，从而提升自己的智能水平</li>
+                        </ul>
+                        <div style="padding: 15px; background: rgba(245, 158, 11, 0.15); border-left: 4px solid #f59e0b; border-radius: 8px; font-size: 0.6em;">
+                            💡 <strong>强化学习：胡萝卜 + 大棒</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：强化学习原理动态结构图 (纯HTML+CSS+SVG构建) -->
+                    <div style="flex: 0.85; display: flex; justify-content: center; align-items: center;">
+                        
+                        <style>
+                            @keyframes flowAction { to { stroke-dashoffset: -32; } }
+                            @keyframes flowReward { to { stroke-dashoffset: -32; } }
+                            @keyframes boxHeartbeat { 
+                                0% { transform: translateX(-50%) scale(1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); } 
+                                30% { transform: translateX(-50%) scale(1.15); box-shadow: 0 15px 40px rgba(255,255,255,0.4); border-color: rgba(255,255,255,0.8); } 
+                                100% { transform: translateX(-50%) scale(1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); } 
+                            }
+                            .rl-box {
+                                position: absolute;
+                                width: 220px;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                padding: 20px;
+                                border-radius: 20px;
+                                color: white;
+                                font-size: 0.85em;
+                                font-weight: bold;
+                                text-align: center;
+                                box-sizing: border-box;
+                                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                                border: 2px solid rgba(255,255,255,0.15);
+                                z-index: 3;
+                            }
+                            .rl-box:has(.pulse-trigger.current-fragment) {
+                                animation: boxHeartbeat 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                            }
+                        </style>
+
+                        <!-- 固定尺寸绘图区以保证线条与模块完美贴合（用 scale 适应不同屏幕以防宽度撑爆） -->
+                        <div style="position: relative; width: 540px; height: 380px; transform: scale(0.9); transform-origin: center right;">
+                            
+                            <!-- SVG连线层 -->
+                            <svg width="540" height="380" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1;">
+                                <defs>
+                                    <marker id="arrowRightDown" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#60a5fa" />
+                                    </marker>
+                                    <marker id="arrowLeftUp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                                    </marker>
+                                </defs>
+                                
+                                <!-- 左侧线条: Env -> Agent (State/Reward) -->
+                                <!-- 顺序1：先有环境给出状态 -->
+                                <path class="fragment" data-fragment-index="1" 
+                                      d="M 160 310 L 40 310 L 40 70 L 160 70" 
+                                      fill="none" stroke="#10b981" stroke-width="4" 
+                                      stroke-dasharray="10,6" 
+                                      style="animation: flowReward 1s linear infinite;" 
+                                      marker-end="url(#arrowLeftUp)" />
+                                      
+                                <!-- 右侧线条: Agent -> Env (Action) (中心点 y: 70 和 310) -->
+                                <!-- 顺序2：智能体根据状态做出动作 -->
+                                <path class="fragment" data-fragment-index="2" 
+                                      d="M 380 70 L 500 70 L 500 310 L 380 310" 
+                                      fill="none" stroke="#60a5fa" stroke-width="4" 
+                                      stroke-dasharray="10,6" 
+                                      style="animation: flowAction 1s linear infinite;" 
+                                      marker-end="url(#arrowRightDown)" />
+                            </svg>
+                            
+                            <!-- 左侧标签浮层（Env->Agent） -->
+                            <div style="position: absolute; top: 190px; left: 0; transform: translateY(-50%); z-index: 2; display: grid;">
+                                <!-- 0 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-out" data-fragment-index="4">
+                                    <div class="fragment fade-in" data-fragment-index="1" style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #10b981; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                        👀 状态 0
+                                        <div style="margin-top: 8px;">🎁 奖励 0</div>
+                                    </div>
+                                </div>
+                                <!-- 1 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-in" data-fragment-index="4">
+                                    <div class="fragment fade-out" data-fragment-index="8">
+                                        <div style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #10b981; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                            👀 状态 1
+                                            <div style="margin-top: 8px;">🎁 奖励 1</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 2 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-in" data-fragment-index="8">
+                                    <div class="fragment fade-out" data-fragment-index="12">
+                                        <div style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #10b981; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                            👀 状态 2
+                                            <div style="margin-top: 8px;">🎁 奖励 2</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 3 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-in" data-fragment-index="12">
+                                    <div style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #10b981; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                        👀 状态 3
+                                        <div style="margin-top: 8px;">🎁 奖励 3</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 右侧标签浮层（Agent->Env） -->
+                            <div style="position: absolute; top: 190px; right: 0; transform: translateY(-50%); z-index: 2; display: grid;">
+                                <!-- 0 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-out" data-fragment-index="6">
+                                    <div class="fragment fade-in" data-fragment-index="2" style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #60a5fa; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                        🏃 动作 0
+                                    </div>
+                                </div>
+                                <!-- 1 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-in" data-fragment-index="6">
+                                    <div class="fragment fade-out" data-fragment-index="10">
+                                        <div style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #60a5fa; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                            🏃 动作 1
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 2 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-in" data-fragment-index="10">
+                                    <div class="fragment fade-out" data-fragment-index="14">
+                                        <div style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #60a5fa; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                            🏃 动作 2
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 3 -->
+                                <div style="grid-area: 1/1;" class="fragment fade-in" data-fragment-index="14">
+                                    <div style="background: rgba(30, 41, 59, 1); padding: 12px 18px; border-radius: 12px; border: 2px solid #334155; color: #60a5fa; font-size: 0.65em; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                        🏃 动作 3
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 智能体模块 (Top) -->
+                            <div class="rl-box fragment fade-in" data-fragment-index="0" style="top: 10px; height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                                <div style="font-size: 1.8em; line-height: 1; margin-bottom: 6px;">🤖</div>
+                                <div style="letter-spacing: 2px; line-height: 1.2; display: grid; transform: translateY(-4px);">
+                                    <div style="grid-area: 1/1;" class="fragment fade-out" data-fragment-index="5">智能体 0</div>
+                                    <div style="grid-area: 1/1;" class="fragment fade-in pulse-trigger" data-fragment-index="5">
+                                        <div class="fragment fade-out" data-fragment-index="9">智能体 1</div>
+                                    </div>
+                                    <div style="grid-area: 1/1;" class="fragment fade-in pulse-trigger" data-fragment-index="9">
+                                        <div class="fragment fade-out" data-fragment-index="13">智能体 2</div>
+                                    </div>
+                                    <div style="grid-area: 1/1;" class="fragment fade-in pulse-trigger" data-fragment-index="13">智能体 3</div>
+                                </div>
+                            </div>
+
+                            <!-- 环境模块 (Bottom) -->
+                            <div class="rl-box fragment fade-in" data-fragment-index="0" style="top: 250px; height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #10b981, #059669);">
+                                <div style="font-size: 1.8em; line-height: 1; margin-bottom: 6px;">🌍</div>
+                                <div style="letter-spacing: 2px; line-height: 1.2; display: grid; transform: translateY(-4px);">
+                                    <div style="grid-area: 1/1;" class="fragment fade-out" data-fragment-index="3">环 境 0</div>
+                                    <div style="grid-area: 1/1;" class="fragment fade-in pulse-trigger" data-fragment-index="3">
+                                        <div class="fragment fade-out" data-fragment-index="7">环 境 1</div>
+                                    </div>
+                                    <div style="grid-area: 1/1;" class="fragment fade-in pulse-trigger" data-fragment-index="7">
+                                        <div class="fragment fade-out" data-fragment-index="11">环 境 2</div>
+                                    </div>
+                                    <div style="grid-area: 1/1;" class="fragment fade-in pulse-trigger" data-fragment-index="11">环 境 3</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    最后，我们来看第三个流派——行为主义。行为主义觉得，前面这两个流派天天躲在脑子里算算算，太脱离实际了！真正的智能，应该是在真实的数据和环境里不断“碰壁、重来、吸取教训”才长出的脑子！
+                    大家看左边，它的核心就是“感知和动作”，不需要教它怎么干，让它自己随便做，做对了给奖励积分，做错了给惩罚扣分，这就是我们常说的“强化学习”。就像训小动物一样纯粹。
+                    大家看看右边的大屏幕，这种机制在哪最有效？第一个就是满大街跑的自动驾驶汽车，路况太复杂写不出完美规则，只能让 AI 自己在真实场景或虚拟沙盒中“边试错边开车”，在反馈中学会安全驾驶。第二个就是大家熟悉的 ChatGPT！为什么它不像早期的聊天机器人那样胡言乱语？因为它背后有一个基于人类反馈的强化学习过程，人类通过“点赞”或“点踩”，硬生生把它“训练”成了懂礼貌、合逻辑的助手。
+                    讲完了三大流派的基础，接下来，我们将聚焦“行为主义”试错得分的魔力。
+                </aside>
+            </section>
+
+            <!-- 新增页：结合联结与行为主义 - AlphaGo 的进阶之路 -->
+            <!-- 第18页：🤖 AlphaGo的诞生：联结 + 行为的结晶 -->
+            <section>
+                <div style="text-align: center;">
+                    <h2 style="margin-bottom: 20px; font-size: 1.3em;">🤖 AlphaGo的诞生：联结 + 行为的结晶</h2>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px; width: 110%; margin-left: -5%; text-align: left; margin-top: 30px;">
+                    
+                    <!-- 第一阶段：联结主义 -->
+                    <div class="fragment fade-up" data-fragment-index="1" style="background: rgba(16, 185, 129, 0.05); border-radius: 20px; padding: 20px 30px; border-left: 6px solid #10b981; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1.5; padding-right: 20px;">
+                            <h3 style="color: #10b981; font-size: 0.9em; margin-bottom: 10px;">阶段 1：打基础 —— 联结主义</h3>
+                            <p style="font-size: 0.55em; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                “喂”给 AI 大量人类高手的历史对弈棋谱。<br>
+                                看到什么样的棋盘局势，就知道这一步大概该下在哪
+                            </p>
+                        </div>
+                        <div style="flex: 0.8; font-size: 3em; text-align: center;">
+                            📖🧠
+                        </div>
+                    </div>
+
+                    <!-- 箭头向下过渡 -->
+                    <div class="fragment fade-up" data-fragment-index="2" style="text-align: center; color: #f59e0b; font-size: 1.5em; margin: -10px 0;">
+                        ⬇️
+                    </div>
+
+                    <!-- 第二阶段：行为主义 -->
+                    <div class="fragment fade-up" data-fragment-index="3" style="background: rgba(245, 158, 11, 0.05); border-radius: 20px; padding: 20px 30px; border-left: 6px solid #f59e0b; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1.5; padding-right: 20px;">
+                            <h3 style="color: #f59e0b; font-size: 0.9em; margin-bottom: 10px;">阶段 2：突破 —— 行为主义</h3>
+                            <p style="font-size: 0.55em; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                当 AI 已经熟悉了人类套路后，让模型自己和自己“左右互搏”。<br>
+                                赢了奖励得分，输了扣分（交互-反馈）。<br>
+                                在试错摸索中，最终发现超越人类认知的新棋路。
+                            </p>
+                        </div>
+                        <div style="flex: 0.8; font-size: 3em; text-align: center;">
+                            ⚔️📈
+                        </div>
+                    </div>
+
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    大家可能都听说过几年以前，AI 里的 AlphaGo 击败世界围棋冠军李世石的故事。它到底是怎么练成的呢？
+                    其实 AlphaGo 的成功，正是完美结合了我们今天所学的流派。
+                    第一阶段是打基础，科学家动用了“联结主义”，给它的大脑灌输了三千万局顶级人类围棋选手的棋谱。像我们背英语单词一样“狂刷题”，让它先学到人类的下棋“直觉”。
+                    但这还不够！背古人的棋谱，是不可能超越古人的。
+                    于是到了突破的第二代，科学家祭出了基于“行为主义”的强化学习。他们让模型自己跟自己下棋，成千上万次不停地左右互搏！赢了直接给积分，输了扣分，让环境来反馈。
+                    在这极其粗暴但疯狂的试错反馈中，它很快就超越了原来的自己，甚至最后还发明出了连人类下棋几千年来都没见过的“神之一手”！这就是两大流派结合带来的终极突破。
+                </aside>
+            </section>
+
+            <!-- 新增页：讨论如何结合三大流派开发无人驾驶 AI -->
+            <!-- 第19页：🤔 头脑风暴：构建无人驾驶系统 -->
+            <section>
+                <div style="text-align: center; padding-top: 50px;">
+                    <h2 style="font-size: 1.5em; color: #4facfe; margin-bottom: 40px; letter-spacing: 2px;">🤔 头脑风暴：构建无人驾驶系统</h2>
+                    <div style="background: rgba(255, 255, 255, 0.05); border: 2px dashed #3498db; border-radius: 20px; padding: 40px; margin: 0 auto; width: 85%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <p style="font-size: 1.05em; line-height: 1.6; color: #ecf0f1; margin-bottom: 30px;">
+                            结合今天所学的实现AI的三种方法<br>
+                            如何设计一款能够在复杂城市道路中<br><span class="highlight-green">安全平稳</span>运行的<strong style="color: gold;">无人驾驶系统</strong>
+                        </p>
+                    </div>
+                </div>
+                <aside class="notes">
+                    【教师逐字稿】
+                    同学们，我们刚才分别学习了符号主义、联结主义和行为主义。这三大流派并不是水火不容的，在顶尖的科技公司里，它们往往是被结合起来使用的。
+                    现在，请大家开动脑筋，同桌之间可以讨论一下：如果我们是某家自动驾驶公司的工程师，要开发出一套可靠的无人驾驶系统。
+                    按照刚才所学的特性，你会如何分工布置这三大“员工”呢？
+                    比如符号主义，它最擅长什么？（引导学生回答：写死规则、交法限定的红灯底线）。
+                    那联结主义呢？（引导学生回答：认识斑马线、认出前面那是一辆车而不是一个塑料袋）。
+                    最后行为主义呢？（引导学生回答：在虚拟马路上不断撞碰试错，练成一个懂得变道超车躲避行人的老司机）。
+                    大家可以看到，真正的自动驾驶落地，往往是多种技术流派的扬长避短、综合应用。这就是当今 AI 产业前沿的最真实思路！
+                </aside>
+            </section>
+
+            <!-- 补充页：三大流派总结与对比 -->
+            <!-- 第20页：课堂小结 -->
+            <section>
+                <div style="text-align: left; padding-left: 20px;">
+                    <h2 style="margin-bottom: 50px; font-size: 1.5em; border-left: 8px solid #3498db; padding-left: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.2);">课堂小结</h2>
+                    
+                    <div style="width: 1160px; margin-left: -80px; background: rgba(26, 32, 44, 0.4); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); font-size: 0.65em;">
+                        <!-- 表头 -->
+                        <div style="display: grid; grid-template-columns: 1fr 2.8fr 2.8fr 3.4fr; padding: 25px 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.5); align-items: center; text-align: left;">
+                            <div style="color: #94a3b8; font-weight: bold; text-align: center;">维度</div>
+                            <div style="color: #60a5fa; font-weight: bold; font-size: 1.3em;">符号主义</div>
+                            <div style="color: #4ade80; font-weight: bold; font-size: 1.3em;">联结主义</div>
+                            <div style="color: #fbbf24; font-weight: bold; font-size: 1.3em;">行为主义</div>
+                        </div>
+                        
+                        <!-- 第一行：要点 -->
+                        <div style="display: grid; grid-template-columns: 1fr 2.8fr 2.8fr 3.4fr; padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); align-items: center; text-align: left;" class="fragment fade-up">
+                            <div style="color: #e2e8f0; font-weight: bold; text-align: center;">要点</div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                知识库<br>逻辑推理
+                            </div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                人工神经网络<br><span style="color: #4ade80; font-weight: bold;">数据驱动</span>
+                            </div>
+                            <div style="line-height: 1.6; font-weight: bold;">
+                                问题引导<br>
+                                <span style="color: #fbbf24; font-weight: bold;">交互-反馈</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 第二行：优点 -->
+                        <div style="display: grid; grid-template-columns: 1fr 2.8fr 2.8fr 3.4fr; padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); align-items: center; text-align: left;" class="fragment fade-up">
+                            <div style="color: #e2e8f0; font-weight: bold; text-align: center;">优点</div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                <span style="color: #60a5fa; font-weight: bold;">可解释性强</span><br>逻辑严谨可控
+                            </div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                在足量标注数据下<br>效果好，应用广泛
+                            </div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                自主探索与优化<br>无需标注数据
+                            </div>
+                        </div>
+                        
+                        <!-- 第三行：缺点 -->
+                        <div style="display: grid; grid-template-columns: 1fr 2.8fr 2.8fr 3.4fr; padding: 25px 20px; align-items: center; text-align: left;" class="fragment fade-up">
+                            <div style="color: #e2e8f0; font-weight: bold; text-align: center;">缺点</div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                <span style="color: #60a5fa; font-weight: bold;">无法穷尽规则</span><br>
+                                常面临瓶颈
+                            </div>
+                            <div style="color: #e2e8f0; line-height: 1.6;">
+                                可解释性差<br>
+                                <span style="color: #4ade80; font-weight: bold;">数据和算力依赖</span>
+                            </div>
+                            <div style="color: #e2e8f0; line-height: 1.6; white-space: nowrap;">
+                                前期试错较多，进步慢<br>
+                                <span style="color: #fbbf24; font-weight: bold;">数据和算力依赖</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <aside class="notes">
+                    【教师逐字稿】
+                    最后，让我们来总结对比一下人工智能发展史上的这三大流派。
+                    （点击PPT出现表格内容）
+                    符号主义：代表了过去的严谨，它是靠人类写规则，优点是逻辑清晰完全可控，缺点就是遇到复杂情况根本写不完。
+                    联结主义：代表了现在的繁荣，它是靠“喂”已知数据，优点是可以自动学习复杂的图像和语音，缺点是它像个黑盒，有时候你也不知道它为什么会得出这个结果。
+                    行为主义：代表了具身智能的明天，它是靠和环境摔打交互，优点是自己长出最优策略，完全不需要人工标注，但缺点就是要试错太多次，前期比较笨。
+                    这三者在未来必定是相互结合的，共同构筑真正的人工智能！
+                </aside>
+            </section>
+
+            <!-- 课后作业 -->
+            <!-- 第21页：📚 课后作业 -->
+            <section>
+                <div style="text-align: center; padding-top: 20px;">
+                    <h2 style="font-size: 1.6em; margin-bottom: 40px; letter-spacing: 2px;">📚 课后作业</h2>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(100, 150, 255, 0.3); border-radius: 20px; padding: 40px; margin: 0 auto; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: left;">
+                        <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 30px;">
+                            <p style="font-size: 1.1em; line-height: 1.6; color: #ecf0f1; margin: 0;">
+                                通过<strong style="color: #60a5fa;">搜索引擎</strong>或<strong style="color: #10b981;">AI大模型</strong><br>
+                                1. 探究生活中某种AI是如何实现的<br>
+                                2. 了解我国当前芯片产业的发展情况
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <aside class="notes">
+                    【教师逐字稿】
+                    在我们今天下课之前，我给大家布置两个小小的挑战：
+                    任务一：请大家利用搜索引擎，或者直接去问问像月之暗面 Kimi、文心一言这样的 AI 大模型助手，去探究一下我们生活中某一种你感兴趣的 AI 产品，它究竟是怎么实现的？比如它是靠规则、还是数据、又或者是试错强化？
+                    任务二：我们今天提到，现在的联结主义和行为主义都非常依赖算力，这就是为什么算力被称为AI时代的“石油”。请大家课后了解一下我国当前芯片产业的发展情况。
+                    下节课我们一开始，我会邀请同学来分享。下课！
+                </aside>
+            </section>
+
+            <!-- 附录：自动驾驶的前世今生 -->
+            <!-- 第22页：🚗 AI驾驶：两种技术路线 -->
+            <section>
+                <h2 style="margin-bottom: 30px;">🚗 AI驾驶：两种技术路线</h2>
+                
+                <div style="display: flex; flex-direction: column; gap: 30px; width: 108%; margin-left: -4%; text-align: left;">
+                    
+                    <!-- 上半部分：传统模块化（符号主义思维影子） -->
+                    <div class="fragment" data-fragment-index="1" style="background: rgba(255, 255, 255, 0.04); border-radius: 20px; padding: 20px; border-left: 5px solid #60a5fa; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1.2; margin-right: 15px; white-space: nowrap;">
+                            <h3 style="color: #60a5fa; font-size: 0.8em; margin-bottom: 10px;">路线1：流水线式模块化架构</h3>
+                            <p style="font-size: 0.52em; color: #cbd5e1; line-height: 1.5; margin: 0;">
+                                感知：识别车辆、行人、红绿灯等（联结主义）<br>
+                                预测：预判其他交通参与者轨迹<br>
+                                规划：绿灯行、红灯停、限速（符号主义）<br>
+                                痛点：路况纷繁复杂，难以穷举
+                            </p>
+                        </div>
+                        <div style="flex: 1.5; display: flex; align-items: center; justify-content: space-between; font-size: 0.45em; font-weight: bold; text-align: center;">
+                            <div style="background: rgba(96, 165, 250, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed #60a5fa; color: #cbd5e1; min-width: 50px;">传感器</div>
+                            <span style="color: #60a5fa; font-size: 1.2em;">➔</span>
+                            <div style="background: rgba(96, 165, 250, 0.15); padding: 8px; border-radius: 8px; border: 1px solid #60a5fa;">感知</div>
+                            <span style="color: #60a5fa; font-size: 1.2em;">➔</span>
+                            <div style="background: rgba(96, 165, 250, 0.15); padding: 8px; border-radius: 8px; border: 1px solid #60a5fa;">预测</div>
+                            <span style="color: #60a5fa; font-size: 1.2em;">➔</span>
+                            <div style="background: rgba(96, 165, 250, 0.15); padding: 8px; border-radius: 8px; border: 1px solid #60a5fa;">规划</div>
+                            <span style="color: #60a5fa; font-size: 1.2em;">➔</span>
+                            <div style="background: rgba(96, 165, 250, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed #60a5fa; color: #cbd5e1; min-width: 50px;">控制车辆</div>
+                        </div>
+                    </div>
+
+                    <!-- 下半部分：端到端大模型（联结+行为主义） -->
+                    <div class="fragment" data-fragment-index="2" style="background: rgba(255, 255, 255, 0.04); border-radius: 20px; padding: 20px; border-left: 5px solid #10b981; display: flex; align-items: center; justify-content: space-between; position: relative;">
+                        <div style="flex: 1.2; margin-right: 15px; white-space: nowrap;">
+                            <h3 style="color: #10b981; font-size: 0.8em; margin-bottom: 10px;">路线2：端到端</h3>
+                            <p style="font-size: 0.52em; color: #cbd5e1; line-height: 1.5; margin: 0;">
+                                使用大模型代替原本的多个模块<br>
+                                依赖海量的数据训练模型
+                            </p>
+                        </div>
+                        <div style="flex: 1.5; display: flex; align-items: center; justify-content: space-between; font-size: 0.45em; font-weight: bold; text-align: center;">
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed #10b981; color: #cbd5e1; min-width: 50px;">传感器</div>
+                            <span style="color: #10b981; font-size: 1.5em; flex: 1;">➔</span>
+                            <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 15px; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); flex: 2;">大模型</div>
+                            <span style="color: #10b981; font-size: 1.5em; flex: 1;">➔</span>
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px dashed #10b981; color: #cbd5e1; min-width: 50px;">控制车辆</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    除了语言和文字，联结主义另一个大放异彩的领域就是真实的工业机器——比如自动驾驶。
+                    十年前，程序员们教汽车开车走的是“传统模块化”。有点类似刚才讲的符号主义，工程师会去写一堆硬性规则：“发现黄灯准备减速”、“遇到行人刹车”。感知、规划、控制像是三个独立车间。但现实路况太复杂，你没法穷举所有情况。
+                    因此，现在的顶尖车企开始走第二条路线：“端到端”。其实这就是联结主义！不再教机器认红绿灯和写规则，而是直接把人类老司机的千万小时行驶视频作为大规模数据喂给黑盒大模型，给它做“行为克隆”标注，慢慢长出老司机的直觉！
+                </aside>
+            </section>
+
+            <!-- 备用页：行为主义应用案例 - AlphaGo Zero -->
+            <!-- 第23页：行为主义：AlphaGo Zero -->
+            <section>
+                <div style="width: 100%; margin: 0 auto; text-align: center;">
+                    <h2 style="margin-bottom: 15px; font-size: 1.15em; white-space: nowrap;">行为主义：AlphaGo Zero</h2>
+                    
+                    <style>
+                        @keyframes spinSwords {
+                            0% { transform: rotate(0deg) scale(1); }
+                            50% { transform: rotate(18deg) scale(1.2); }
+                            100% { transform: rotate(0deg) scale(1); }
+                        }
+                        @keyframes pulseGlow {
+                            0%, 100% { filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.4)); }
+                            50% { filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.9)); }
+                        }
+                    </style>
+
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 0px;">
+                        
+                        <!-- 核心结构 -->
+                        <div style="width: 95%; background: rgba(16, 185, 129, 0.08); border-radius: 20px; padding: 15px 30px; border-top: 5px solid #10b981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
+                            
+                            <h3 style="color: #10b981; font-size: 0.85em; margin-bottom: 10px;">不看人类棋谱，从零开始“自我对弈”</h3>
+
+                            <!-- 对弈动画区 -->
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 10px;">
+                                
+                                <!-- 左边大脑（执黑） -->
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                    <div style="width: 2em; height: 2em; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #555, #111 60%, #000); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.8), 5px 8px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;"></div>
+                                    <span style="font-size: 0.55em; color: #cbd5e1; margin-top: 5px;">智能体(黑子)</span>
+                                </div>
+                                
+                                <!-- 过程 -->
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 150px;">
+                                    <div style="font-size: 2em; color: #f59e0b; animation: spinSwords 1s ease-in-out infinite;">⚔️</div>
+                                </div>
+
+                                <!-- 右边大脑（执白） -->
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                    <div style="width: 2em; height: 2em; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #e2e8f0 60%, #cbd5e1); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.1), 5px 8px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;"></div>
+                                    <span style="font-size: 0.55em; color: #cbd5e1; margin-top: 5px;">智能体(白子)</span>
+                                </div>
+
+                            </div>
+
+                            <!-- 反馈机制 -->
+                            <div style="background: rgba(245, 158, 11, 0.15); border-radius: 12px; border: 1px dashed #f59e0b; padding: 10px; text-align: center; margin-bottom: 5px;">
+                                <div style="font-size: 0.58em; color: #fff; display: flex; justify-content: space-around; align-items: center;">
+                                    <div style="flex: 1;"><strong style="color: #10b981; font-size: 1.2em;">赢家：奖励 (+1)</strong><br><span style="color:#cbd5e1; font-size: 0.9em;">加深该赢棋套路的“脑回路”</span></div>
+                                    <div style="font-size: 1.6em; margin: 0 10px;">🔄</div>
+                                    <div style="flex: 1;"><strong style="color: #ef4444; font-size: 1.2em;">输家：惩罚 (-1)</strong><br><span style="color:#cbd5e1; font-size: 0.9em;">打消该输棋套路的“脑回路”</span></div>
+                                </div>
+                            </div>
+                            
+                            <div style="font-size: 0.38em; color: #94a3b8; margin-top: 5px;">*纯粹通过环境反馈（赢与输）驱动智能进化的循环</div>
+
+                        </div>
+
+                        <!-- 成果震撼弹 -->
+                        <div style="width: 95%; margin-top: 15px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.05)); padding: 15px 30px; border-radius: 16px; border-left: 8px solid #f59e0b; display: flex; align-items: center; justify-content: center; gap: 25px;">
+                            <div style="font-size: 2.8em; line-height: 1;">🏆</div>
+                            <div style="text-align: left; font-size: 0.62em; color: #fff; line-height: 1.6; white-space: nowrap;">
+                                自我进化 <strong style="color: #10b981; font-size: 1.2em;">40 天</strong>，摸索出大量新棋路<br>
+                                以 <strong style="color: #f59e0b; font-size: 1.4em; vertical-align: middle;">100 : 0</strong> 战绩，彻底碾压学习人类经验的初代 AlphaGo！
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    大家一定听说过 AlphaGo 击败世界冠军的新闻。但其实有个更恐怖的升级版叫 AlphaGo Zero。
+                    它完全抛弃了去学习“人类名家棋谱”的捷径，不让人类指导，而是采用了最纯净的“行为主义”！
+                    怎么做的呢？科学家只把它的“黑子大脑”和“白子大脑”放在同一个围棋环境里疯狂互搏对弈！
+                    一开始它像个婴儿乱下棋，但没关系，系统给它设定了反馈机制：下赢了这局，系统就给它奖励分，相当于强化那套赢棋步骤的脑回路；输了就扣分，让它不再这么下。这就是环境的试错反馈。
+                    奇迹发生了：在这种循环试错中，短短 40 天，几千万局练下来，它不仅自己悟出了围棋的所有兵法，甚至发明出很多人类高手几千年都没想过的神仙招式！最终以 100:0 的惊艳战绩把上一代 AlphaGo 按在地上摩擦。这就是强化学习自我进化的终极魅力！
+                </aside>
+            </section>
+
+            <!-- 附录：联结主义的更多应用（数据标注） -->
+            <!-- 第24页：💡 联结主义：更多案例 -->
+            <section>
+                <div style="width: 100%; margin-left: auto; text-align: center;">
+                    <h2 style="margin-bottom: 40px;">💡 联结主义：更多案例</h2>
+                </div>
+                
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 30px; margin: 0 auto; text-align: left;">
+                    
+                    <!-- 案例1: 智能语音识别 -->
+                    <div style="background: rgba(96, 165, 250, 0.05); border-radius: 20px; padding: 25px; border-left: 5px solid #60a5fa; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1.2;">
+                            <h3 style="color: #60a5fa; font-size: 0.8em; margin-bottom: 10px;">🎙️ 语音识别</h3>
+                            <div style="font-size: 0.55em; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                <strong>标注方法：听写</strong><br>
+                                收集成千上万小时的录音，告诉 AI 这段长短不一的声波曲线对应的文字是什么。
+                            </div>
+                        </div>
+                        <div style="flex: 1.5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 0.45em; font-weight: bold; width: 100%;">
+                            <!-- 例子1 -->
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 90%;">
+                                <div style="background: rgba(96, 165, 250, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px dashed #60a5fa; display: flex; align-items: center; justify-content: center; gap: 5px; flex: 1;">
+                                    <span style="color: #fbbf24;">〰〰〰</span> <span style="font-weight: normal; font-size: 0.8em;">(女声·标准)</span>
+                                </div>
+                                <span style="color: #60a5fa; margin: 0 5px;">➔</span>
+                                <div style="background: rgba(30, 41, 59, 1); padding: 8px 12px; border-radius: 8px; border: 1px solid #334155; color: #60a5fa; flex: 1.2; text-align: center;">
+                                    "湖州今天天气怎样"
+                                </div>
+                            </div>
+                            <!-- 例子2 -->
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 90%;">
+                                <div style="background: rgba(96, 165, 250, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px dashed #60a5fa; display: flex; align-items: center; justify-content: center; gap: 5px; flex: 1;">
+                                    <span style="color: #34d399;">〰〰</span> <span style="font-weight: normal; font-size: 0.8em;">(童声·含混)</span>
+                                </div>
+                                <span style="color: #60a5fa; margin: 0 5px;">➔</span>
+                                <div style="background: rgba(30, 41, 59, 1); padding: 8px 12px; border-radius: 8px; border: 1px solid #334155; color: #60a5fa; flex: 1.2; text-align: center;">
+                                    "帮我放一首歌"
+                                </div>
+                            </div>
+                            <!-- 例子3 -->
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 90%;">
+                                <div style="background: rgba(96, 165, 250, 0.15); padding: 8px 12px; border-radius: 8px; border: 1px dashed #60a5fa; display: flex; align-items: center; justify-content: center; gap: 5px; flex: 1;">
+                                    <span style="color: #f87171;">〰〰〰〰</span> <span style="font-weight: normal; font-size: 0.8em;">(男声·方言)</span>
+                                </div>
+                                <span style="color: #60a5fa; margin: 0 5px;">➔</span>
+                                <div style="background: rgba(30, 41, 59, 1); padding: 8px 12px; border-radius: 8px; border: 1px solid #334155; color: #60a5fa; flex: 1.2; text-align: center;">
+                                    "导航去高铁站"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <aside class="notes">
+                    【教师逐字稿】
+                    除了我们刚在猫狗分类和图像识别中应用的数据标注之外，联结主义其实是非常强大的。
+                    比如智能音箱和语音识别，背后也是联结主义。大量的音频波形文件作为输入，对应的人工听写汉字作为输出标注。长此以往，即使遇到有口音的用户，AI 的神经网络也能精准“听懂”。
+                    这就是大数据的魔力：不需要懂背后的底层规则，只要“数据对”足够多，网络就能“顿悟”。
+                </aside>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- 引入Reveal.js的js依赖 -->
+    <script src="/static/lib/reveal/reveal.js"></script>
+    <script src="/static/lib/reveal/plugin/notes/notes.js"></script>
+    
+    <script>
+        // 初始化 Reveal.js
+        Reveal.initialize({
+            hash: true,               // 在URL中显示当前页码
+            transition: 'fade',       // 极简淡入淡出动画（避免夸张的飞入）
+            slideNumber: 'c/t',       // 右下角显示当前页/总页数
+            controls: true,           // 显示右下角的控制箭头
+            progress: true,           // 显示底部的进度条
+            plugins: [ RevealNotes ]  // 启用讲义控制台插件
+        });
+    </script>
+</body>
+</html>

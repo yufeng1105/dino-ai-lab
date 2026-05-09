@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>教师登录 - 恐龙快跑AI实验室</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #2c3e50; }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 400px; }
+        h1 { color: #34495e; margin-bottom: 5px; }
+        p.subtitle { color: #7f8c8d; margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; color: #34495e; font-weight: bold; }
+        input[type="password"] { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #e67e22; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; font-weight: bold; }
+        button:hover { background: #d35400; }
+        .error { color: #e74c3c; margin-bottom: 15px; font-size: 14px; }
+        .back-link { display: block; margin-top: 20px; color: #95a5a6; text-decoration: none; font-size: 14px; }
+        .back-link:hover { color: #34495e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>管理后台</h1>
+        <p class="subtitle">教师专属控制台</p>
+        
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" action="/teacher">
+            <div class="form-group">
+                <label>管理员密码</label>
+                <input type="password" name="password" placeholder="请输入密码" required autofocus>
+            </div>
+            <button type="submit">进 入</button>
+        </form>
+        <a href="/login" class="back-link">&larr; 返回学生登录页</a>
+    </div>
+</body>
+</html>

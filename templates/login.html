@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>登录 - 恐龙快跑AI实验室</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #fdfbfb; }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 800px; }
+        h1 { color: #2c3e50; margin-bottom: 25px; }
+        
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        /* 隐藏滚动条让视觉更干净 */
+        .user-grid::-webkit-scrollbar { width: 6px; }
+        .user-grid::-webkit-scrollbar-thumb { background-color: #bdc3c7; border-radius: 3px; }
+        
+        .user-btn {
+            padding: 12px 4px;
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            word-break: keep-all;
+            white-space: nowrap;
+        }
+        .user-btn:hover {
+            background: #e9ecef;
+        }
+        .user-btn.selected {
+            background: #ebf5ff;
+            border-color: #3498db;
+            color: #2980b9;
+            font-weight: bold;
+        }
+        
+        /* 专家按钮单独颜色区分 */
+        .expert-btn {
+            background: #fff3cd;
+            border-color: #ffe69c;
+            color: #856404;
+        }
+        .expert-btn:hover {
+            background: #ffe69c;
+        }
+        .expert-btn.selected {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .submit-btn { 
+            width: 100%; 
+            padding: 14px; 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: bold;
+            cursor: pointer; 
+            transition: background 0.3s; 
+        }
+        .submit-btn:hover { background: #2980b9; }
+        .submit-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        
+        .manual-input-container {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .manual-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .manual-input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .error { color: #e74c3c; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
+    </style>
+    <script>
+        // 防止 BFCache 导致表单页被直接恢复（特别是 Safari 浏览器）
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>登录课堂</h1>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" action="/login">
+            <input type="hidden" name="role" id="roleInput" value="student">
+            <input type="hidden" name="student_name" id="studentInput" value="">
+            
+            <div class="user-grid" id="userGrid">
+                {% for name in students %}
+                <button type="button" class="user-btn" onclick="selectUser('student', '{{ name }}', this)">{{ name }}</button>
+                {% endfor %}
+            </div>
+            
+            <div class="manual-input-container">
+                <div style="font-size: 13px; color: #7f8c8d; margin-bottom: 8px;">如果不在列表中，请在此手动输入您的姓名，为了加快速度可以仅输入首字母，如李子轩（LZX）</div>
+                <input type="text" id="manualNameInput" class="manual-input" placeholder="手动输入姓名..." oninput="handleManualInput(this.value)">
+            </div>
+            
+            <button type="submit" id="submitBtn" class="submit-btn" disabled>选择或输入姓名</button>
+        </form>
+    </div>
+
+    <script>
+        function selectUser(role, name, btnElement) {
+            // 清空手动输入框
+            document.getElementById('manualNameInput').value = '';
+            
+            // 移除所有按钮的选中状态
+            const buttons = document.querySelectorAll('.user-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            
+            // 给当前点击的按钮添加选中状态
+            btnElement.classList.add('selected');
+            
+            // 更新表单隐藏域的值
+            document.getElementById('roleInput').value = role;
+            document.getElementById('studentInput').value = name;
+            
+            // 启用登录按钮并修改文字
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '登 录';
+        }
+        
+        function handleManualInput(val) {
+            // 移除所有按钮的选中状态
+            const buttons = document.querySelectorAll('.user-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (val.trim() !== '') {
+                document.getElementById('roleInput').value = 'student';
+                document.getElementById('studentInput').value = val.trim();
+                
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登 录';
+            } else {
+                document.getElementById('studentInput').value = '';
+                submitBtn.disabled = true;
+                submitBtn.textContent = '选择或输入姓名';
+            }
+        }
+    </script>
+</body>
+</html>

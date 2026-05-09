@@ -1,0 +1,163 @@
+/* Common Layout Styles (Header, Drawers, Bottom Nav) */
+
+/* Header Styles */
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 46px; /* set explicit height to pair with top: 46px on drawer */
+    box-sizing: border-box;
+    background-color: #2c3e50;
+    color: white;
+    padding: 0 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    z-index: 1000;
+    font-family: 'Open Sans', 'Microsoft YaHei', sans-serif;
+}
+.header-left { flex: 1; display: flex; justify-content: flex-start; align-items: center; }
+.header-center { flex: 1; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; letter-spacing: 2px; color: #ecf0f1; text-align: center; }
+.header-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; }
+.header-title { font-weight: bold; font-size: 16px; letter-spacing: 1px; color: #ecf0f1; text-decoration: none; cursor: pointer; }
+
+/* Drawer Styles */
+.drawer {
+  position: fixed;
+  top: 46px;
+  bottom: 50px; /* Leave space for bottom nav */
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  z-index: 10005;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  color: #333;
+}
+
+.drawer-left {
+  left: 0;
+  transform: translateX(-100%);
+  border-right: 1px solid #e0e0e0;
+  width: 640px; /* 增加到原来的2倍，以便老师查看长文本 */
+}
+
+.drawer-left.open {
+  transform: translateX(0);
+}
+
+.drawer-right {
+  right: 0;
+  transform: translateX(100%);
+  border-left: 1px solid #e0e0e0;
+  width: 440px; /* 调整为440px，兼顾不换行与避免过多右侧留白 */
+}
+
+.drawer-right.open {
+  transform: translateX(0);
+}
+
+.drawer-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 90px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  user-select: none;
+}
+
+.drawer-handle-left {
+  right: -32px;
+  background: #3498db;
+  border-radius: 0 6px 6px 0;
+}
+
+.drawer-handle-right {
+  left: -32px;
+  background: #27ae60;
+  border-radius: 6px 0 0 6px;
+}
+
+.drawer-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  z-index: 1001;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  font-family: 'Microsoft YaHei', sans-serif;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.2s;
+  background: #95a5a6;
+}
+
+.nav-item:last-child {
+  border-right: none;
+}
+
+.nav-item:hover {
+  background: #7f8c8d;
+}
+
+.nav-item.active {
+  background: #f1c40f; /* 金色 */
+  color: #2c3e50;
+}
+.nav-item.active:hover {
+  background: #f39c12;
+}
+
+/* Base Body Padding to accommodate fixed navs if needed */
+body {
+    padding-bottom: 50px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+
+/* If embedded as iframe (is-actor-mode or is-demo-mode), hide all layout components */
+body.is-actor-mode .header, body.is-demo-mode .header,
+body.is-actor-mode .bottom-nav, body.is-demo-mode .bottom-nav,
+body.is-actor-mode .drawer, body.is-demo-mode .drawer {
+    display: none !important;
+}
+
+body.is-actor-mode, body.is-demo-mode {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+}

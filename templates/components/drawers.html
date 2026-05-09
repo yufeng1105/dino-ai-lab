@@ -1,0 +1,650 @@
+{% if role == 'teacher' %}
+<!-- 左侧抽屉 -->
+<div id="leftDrawer" class="drawer drawer-left">
+    <div class="drawer-handle drawer-handle-left" onclick="toggleLeftDrawer()"> 展开</div>
+    <div class="drawer-content">
+        <h3 style="color:#2c3e50; margin-top:0; margin-bottom: 20px; text-align: center;">教师控制台</h3>
+        
+        <div class="toggle-group" style="display: flex; flex-direction: column; gap: 15px;">
+            {% if active_nav == 'sym' %}
+            <div class="toggle-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 15px; font-weight: bold; color: #34495e;">开放页面</span>
+                <label class="drawer-switch">
+                    <input type="checkbox" onchange="toggleTaskPermission('sym', this.checked)" {% if tasks.sym %}checked{% endif %}>
+                    <span class="drawer-slider round"></span>
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if active_nav == 'sl' %}
+            <div class="toggle-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 15px; font-weight: bold; color: #34495e;">开放页面</span>
+                <label class="drawer-switch">
+                    <input type="checkbox" onchange="toggleTaskPermission('sl', this.checked)" {% if tasks.sl %}checked{% endif %}>
+                    <span class="drawer-slider round"></span>
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if active_nav == 'rl' %}
+            <div class="toggle-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 15px; font-weight: bold; color: #34495e;">开放页面</span>
+                <label class="drawer-switch">
+                    <input type="checkbox" onchange="toggleTaskPermission('rl', this.checked)" {% if tasks.rl %}checked{% endif %}>
+                    <span class="drawer-slider round"></span>
+                </label>
+            </div>
+            {% endif %}
+
+            {% if active_nav in ['sym', 'sl'] %}
+            <hr style="border: 0; height: 1px; background: #ecf0f1; margin: 15px 0;">
+            <style>
+                .drawer-icon-btn { position: relative; background: rgba(255,255,255,0.9); color: #34495e; border: 2px solid #bdc3c7; border-radius: 50%; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+                .drawer-icon-btn:hover { background: #fff; transform: scale(1.15); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+                .drawer-icon-btn:active { transform: scale(0.95); }
+                .drawer-icon-btn[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(44, 62, 80, 0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 1000; font-weight: normal; }
+                .drawer-icon-btn[data-tooltip]:hover::after { opacity: 1; }
+            </style>
+            <div id="teacherStatsContainer" style="margin-top: 15px; background: #f8f9fa; padding: 25px 20px; border-radius: 8px; flex: 1; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: {% if active_nav == 'sl' %}center{% else %}space-between{% endif %}; align-items: center; margin-bottom: 25px;">
+                    <span style="font-size: 15px; font-weight: bold; color: #2c3e50;">{% if active_nav == 'sym' %}答题汇总{% elif active_nav == 'sl' %}AI分数榜{% endif %}</span>
+                </div>
+                <div style="margin-bottom: 15px; font-weight: bold; color: #8e44ad; font-size: 15px;">{% if active_nav == 'sl' %}上榜人数{% else %}已提交人数{% endif %}: <span id="symTotalCount" style="font-size: 18px; color: #2980b9;">0</span> 人</div>
+                {% if active_nav == 'sym' %}
+                <div class="toggle-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 14px; font-weight: bold; color: #34495e;">显示答题分布</span>
+                    <label class="drawer-switch">
+                        <input type="checkbox" id="showDistributionToggle" onchange="fetchEvalStats(true)">
+                        <span class="drawer-slider round"></span>
+                    </label>
+                </div>
+                {% endif %}
+                <div id="statsContent" style="font-size: 14px; color: #7f8c8d;">数据获取中...</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.drawer-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.drawer-switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.drawer-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+}
+.drawer-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+}
+.drawer-switch input:checked + .drawer-slider {
+  background-color: #2ecc71;
+}
+.drawer-switch input:checked + .drawer-slider:before {
+  transform: translateX(20px);
+}
+.drawer-slider.round {
+  border-radius: 24px;
+}
+.drawer-slider.round:before {
+  border-radius: 50%;
+}
+</style>
+<script>
+    async function toggleTaskPermission(taskName, state) {
+        try {
+            const resp = await fetch('/api/toggle_task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: taskName, state: state })
+            });
+            const data = await resp.json();
+            if (data.error) {
+                if (typeof showToast === 'function') showToast(data.error, 'error'); else alert(data.error);
+            }
+        } catch (e) {
+            console.error('Failed to toggle task:', e);
+            if (typeof showToast === 'function') showToast('操作失败，服务器可能未响应', 'error'); else alert('操作失败，服务器可能未响应');
+        }
+    }
+
+    async function toggleManualPlay(taskName, state) {
+        try {
+            const resp = await fetch('/api/toggle_manual_play', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: taskName, state: state })
+            });
+            const data = await resp.json();
+            if (data.error) {
+                if (typeof showToast === 'function') showToast(data.error, 'error'); else alert(data.error);
+            }
+        } catch (e) {
+            console.error('Failed to toggle manual play:', e);
+            if (typeof showToast === 'function') showToast('操作失败，服务器可能未响应', 'error'); else alert('操作失败，服务器可能未响应');
+        }
+    }
+
+    let lastStatsRaw = "";
+    async function fetchEvalStats(isManual = false) {
+        const container = document.getElementById('statsContent');
+        if (!container) return;
+        
+        // 如果是手动点击或者当前没有内容，才显示加载中（避免自动刷新时闪烁）
+        if (isManual || container.innerHTML.includes('数据获取中')) {
+            // 不再覆盖内容避免闪烁，仅在最开始请求或网络错误时才提示
+        }
+        
+        try {
+            // 当前处于哪个页面就获取哪个页面的统计，这里动态通过 active_nav 获取
+            const currentTask = '{{ active_nav }}';
+            let apiUrl = `/api/eval_stats/${currentTask}`;
+            if (currentTask === 'sl') {
+                apiUrl = '/api/sl/leaderboard';
+            }
+            const resp = await fetch(apiUrl);
+            const textRaw = await resp.text();
+            
+            // 如果非手动更新且数据无变化，避免重新渲染导致滚动条跳动
+            if (!isManual && textRaw === lastStatsRaw) return;
+            lastStatsRaw = textRaw;
+            
+            const data = JSON.parse(textRaw);
+            
+            // 记录当前的滚动位置
+            const scrollContainer = document.querySelector('#statsContent > div[style*="overflow-y: auto"]');
+            const oldScroll = scrollContainer ? scrollContainer.scrollTop : 0;
+            
+            if (data.error) {
+                container.innerHTML = `<span style="color: #e74c3c;">${data.error}</span>`;
+                return;
+            }
+            
+            // 无视 task 类型，统一更新全局的人数展示
+            const countEl = document.getElementById('symTotalCount');
+            if (countEl) countEl.innerText = data.total_students;
+            
+            if (data.total_students === 0) {
+                container.innerHTML = '暂无提交';
+                return;
+            }
+            
+            window.cachedDesigns = data.designs;
+
+            let html = "";
+            if (currentTask === 'sym') {
+                const showDist = document.getElementById('showDistributionToggle');
+                if (showDist && showDist.checked) {
+                    html += `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+                    for(let opt of ['A', 'B', 'C', 'D']) {
+                        let count = data.distribution[opt] || 0;
+                        let ptr = (count / data.total_students * 100).toFixed(1);
+                        html += `
+                            <div onclick="showOptionDetails('sym', '${opt}', null)" style="cursor: pointer; background: white; border: 1px solid #dcdde1; border-radius: 6px; padding: 10px; display: flex; align-items: center; transition: background 0.2s;">
+                                <div style="width: 30px; font-weight: bold; font-size: 18px; color: #e67e22;">${opt}</div>
+                                <div style="flex: 1; margin: 0 10px; background: #ecf0f1; border-radius: 4px; height: 16px; overflow: hidden;">
+                                    <div style="width: ${ptr}%; background: #3498db; height: 100%;"></div>
+                                </div>
+                                <div style="width: 50px; text-align: right; color: #7f8c8d; font-size: 13px;">${count}人</div>
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                } else {
+                    html = '<div style="color: #95a5a6; font-style: italic; text-align: center; padding-top: 10px;">分布已隐藏</div>';
+                }
+            } else if (currentTask === 'sl') {
+                html = ""; 
+                if(data.leaderboard && data.leaderboard.length > 0) {
+                    html += `<div style="display: flex; flex-direction: column; gap: 10px; max-height: 70vh; overflow-y: auto; padding-right: 10px;">`;
+                    let rank = 1;
+                    for(let record of data.leaderboard) {
+                        let rankIcon = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank + '.'));
+                        let bg = rank <= 3 ? 'linear-gradient(to right, #fff, #fef9e7)' : 'white';
+                        let border = rank === 1 ? 'border: 2px solid #f1c40f;' : (rank === 2 ? 'border: 2px solid #bdc3c7;' : (rank === 3 ? 'border: 2px solid #d35400;' : 'border: 1px solid #dcdde1;'));
+                        let displayName = record.name === 'teacher_admin' ? '教师' : record.name;
+                        html += `
+                            <div style="background: ${bg}; ${border} border-radius: 8px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <div style="font-weight: bold; font-size: 16px; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 20px; width: 30px; text-align: center;">${rankIcon}</span>
+                                    <span>${displayName}</span>
+                                </div>
+                                <div style="font-weight: 900; font-size: 18px; color: #e74c3c;">
+                                    ${Math.floor(record.score)} 分
+                                </div>
+                            </div>
+                        `;
+                        rank++;
+                    }
+                    html += `</div>`;
+                } else {
+                    html = '<div style="color: #95a5a6; font-style: italic; text-align: center; padding-top: 10px;">暂无数据，等待学生提交...</div>';
+                }
+            } else {
+                html = ""; // 隐藏内部总人数，因为上边已经有全局的已提交人数展示了
+                
+                if(data.designs) {
+                // To layout grid-like items since width is 640px now
+                html += `<div style="display: flex; flex-direction: column; gap: 15px; max-height: 70vh; overflow-y: auto; padding-right: 10px;">`;
+                
+                // 将字典的键提取出来并反转，使最新提交的学生显示在最上面
+                const sortedStudents = Object.keys(data.designs).reverse();
+                
+                for(let student of sortedStudents) {
+                    let designText = data.designs[student];
+                    // safe escape html
+                    designText = designText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+                    
+                    let displayStudent = student === 'teacher_admin' ? '教师' : student;
+                    html += `
+                        <div onclick="openCommentModal(this)" style="cursor: zoom-in; background: white; border: 1px solid #dcdde1; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; position:relative;" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.15)'; this.querySelector('.enlarge-tip').style.opacity='1'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 5px rgba(0,0,0,0.05)'; this.querySelector('.enlarge-tip').style.opacity='0'">
+                            <div class="modal-student-name" style="font-weight: bold; color: #2c3e50; font-size: 15px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${displayStudent}</div>
+                            <div class="modal-student-response" style="color: #34495e; font-size: 14px; line-height: 1.5; max-height: 300px; overflow: hidden;">${designText || '<span style="color:#95a5a6;font-style:italic;">(已清空)</span>'}</div>
+                            <div class="enlarge-tip" style="position:absolute; top: 15px; right: 15px; color: #3498db; opacity:0; transition:opacity 0.2s; font-size: 12px; font-weight: bold;"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:bottom"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> 放大评价</div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+            }
+            container.innerHTML = html;
+            
+            // 恢复滚动条位置
+            if (oldScroll > 0) {
+                const newScrollContainer = document.querySelector('#statsContent > div[style*="overflow-y: auto"]');
+                if (newScrollContainer) {
+                    // 防止数据量变少导致异常，用 setTimeout 保证DOM生效后赋值
+                    setTimeout(() => { newScrollContainer.scrollTop = oldScroll; }, 0);
+                }
+            }
+            
+        } catch(e) {
+            if (isManual) {
+                container.innerHTML = '<span style="color: #e74c3c;">获取数据失败</span>';
+            }
+        }
+    }
+
+    // 设置数据初始化获取（支持1秒轮询）
+    document.addEventListener('DOMContentLoaded', () => {
+        const statsContainer = document.getElementById('teacherStatsContainer');
+        if (statsContainer) {
+            fetchEvalStats(false); // 初始化拉取一次数据
+            setInterval(() => fetchEvalStats(false), 1000); // 1秒自动轮询
+        }
+    });
+
+    // 全屏放大评价的逻辑
+    function openCommentModal(cardElement) {
+        const studentNameHtml = cardElement.querySelector('.modal-student-name').innerHTML;
+        const responseHtml = cardElement.querySelector('.modal-student-response').innerHTML;
+        
+        let modal = document.getElementById('teacherCommentModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'teacherCommentModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 999999; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s, backdrop-filter 0.2s; cursor: zoom-out; backdrop-filter: blur(0px); font-family: sans-serif;';
+            modal.onclick = function(e) {
+                // 点击背景或者关闭按钮关闭
+                if (e.target === modal || e.target.closest('.modal-close-btn')) {
+                    modal.style.opacity = '0';
+                    modal.style.backdropFilter = 'blur(0px)';
+                    modal.querySelector('.teacher-modal-content').style.transform = 'scale(0.9)';
+                    setTimeout(() => { modal.style.display = 'none'; }, 200);
+                }
+            };
+            
+            modal.innerHTML = `
+                <div class="teacher-modal-content" style="background: white; width: 90%; max-width: 1400px; max-height: 90vh; border-radius: 12px; padding: 50px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); overflow-y: auto; position: relative; cursor: default; transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                    <div class="modal-close-btn" style="position: absolute; top: 15px; right: 20px; font-size: 40px; cursor: pointer; color: #95a5a6; transition: color 0.2s; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%;" onmouseover="this.style.color='#e74c3c'; this.style.background='#fdf2f0'" onmouseout="this.style.color='#95a5a6'; this.style.background='transparent'">&times;</div>
+                    <div id="modalStudentName" style="font-size: 36px; font-weight: bold; color: #2c3e50; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px; margin-bottom: 25px; padding-right: 40px;"></div>
+                    <div id="modalStudentResponse" style="font-size: 32px; color: #34495e; line-height: 1.8; word-wrap: break-word;"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        document.getElementById('modalStudentName').innerHTML = studentNameHtml;
+        document.getElementById('modalStudentResponse').innerHTML = responseHtml;
+        
+        modal.style.display = 'flex';
+        // Trigger reflow 来启动动画
+        void modal.offsetWidth;
+        modal.style.opacity = '1';
+        modal.style.backdropFilter = 'blur(5px)';
+        modal.querySelector('.teacher-modal-content').style.transform = 'scale(1)';
+    }
+
+
+    function showOptionDetails(task, option, qId, qTitle = "") {
+        const designs = window.cachedDesigns || {};
+        let studentsList = [];
+
+        let titleText = "";
+        if (task === "sym") {
+            titleText = `选项 <span style="color:#e74c3c">${option}</span> 的选择者`;
+            for (let student in designs) {
+                if (designs[student] === option) {
+                    studentsList.push(student === "teacher_admin" ? "教师" : student);
+                }
+            }
+        }
+
+        let modal = document.getElementById("teacherCommentModal");
+        if (!modal) {
+            let tempDiv = document.createElement("div");
+            tempDiv.innerHTML = `<div class="modal-student-name"></div><div class="modal-student-response"></div>`;
+            openCommentModal(tempDiv);
+            modal = document.getElementById("teacherCommentModal");
+        }
+
+        let headerContent = `
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                <span>${titleText} (${studentsList.length}人)</span>
+                <button onclick="randomPickStudent()" style="background:#8e44ad; color:white; border:none; padding:10px 20px; border-radius:8px; font-size:24px; cursor:pointer; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">🎲 随机点名</button>
+            </div>
+        `;
+
+        let bodyContent = "";
+        if (studentsList.length === 0) {
+            bodyContent = `<div style="text-align:center; color:#95a5a6; font-style:italic; padding:40px;">暂无学生选择此项</div>`;
+        } else {
+            bodyContent = `<div style="display:flex; flex-wrap:wrap; gap:15px;" id="randomPickContainer">`;
+            for (let name of studentsList) {
+                let displayStudent = name.replace(/^.*?_admin_.*?_/, '').replace(/^.*?[_ ]/, '').replace(/[^a-zA-Z0-9一-龥]/g, '');
+                bodyContent += `<div class="student-name-tag" style="background:#f8f9fa; border:2px solid #ecf0f1; border-radius:8px; padding:10px 20px; font-size:28px; color:#2c3e50; transition:all 0.3s; font-weight:bold;">${displayStudent || name}</div>`;
+            }
+            bodyContent += `</div>`;
+        }
+
+        document.getElementById("modalStudentName").innerHTML = headerContent;
+        document.getElementById("modalStudentResponse").innerHTML = bodyContent;
+
+        window.randomPickStudent = function() {
+            const tags = document.querySelectorAll("#randomPickContainer .student-name-tag");
+            if(tags.length === 0) return;
+
+            tags.forEach(t => {
+                t.style.background = "#f8f9fa";
+                t.style.borderColor = "#ecf0f1";
+                t.style.color = "#2c3e50";
+                t.style.transform = "scale(1)";
+            });
+
+            let count = 0;
+            let maxCount = 20 + Math.floor(Math.random() * 10);
+            let interval = setInterval(() => {
+                tags.forEach(t => {
+                    if (t.style.background !== "rgb(231, 76, 60)") {
+                        t.style.background = "#f8f9fa";
+                    }
+                });
+
+                let rIdx = Math.floor(Math.random() * tags.length);
+                let currentTag = tags[rIdx];
+                currentTag.style.background = "#dff9fb";
+
+                count++;
+                if (count > maxCount) {
+                    clearInterval(interval);
+                    tags.forEach(t => {
+                        t.style.background = "#f8f9fa";
+                        t.style.borderColor = "#ecf0f1";
+                        t.style.color = "#2c3e50";
+                        t.style.transform = "scale(1)";
+                    });
+                    currentTag.style.background = "#e74c3c";
+                    currentTag.style.borderColor = "#c0392b";
+                    currentTag.style.color = "#fff";
+                    currentTag.style.transform = "scale(1.1)";
+                }
+            }, 50);
+        };
+
+        modal.style.display = "flex";
+        void modal.offsetWidth;
+        modal.style.opacity = "1";
+        modal.style.backdropFilter = "blur(5px)";
+        modal.querySelector(".teacher-modal-content").style.transform = "scale(1)";
+    }
+
+</script>
+{% endif %}
+
+{% if active_nav == 'sym' %}
+<!-- 右侧抽屉 -->
+<div id="rightDrawer" class="drawer drawer-right">
+    <div class="drawer-handle drawer-handle-right" onclick="toggleRightDrawer()">展开</div>
+    <div class="drawer-content" style="overflow-y: auto; display: flex; flex-direction: column;">
+        <h3 style="color:#2c3e50; margin-top:0; text-align: center; flex-shrink: 0;">
+            {% if active_nav == 'sym' %}
+            📝 翼龙避障规则设计
+            {% elif active_nav in ['sl', 'rl'] %}
+            🏆 提出你的AI实现方案
+            {% else %}
+            学习评价
+            {% endif %}
+        </h3>
+        
+        {% if active_nav == 'sym' %}
+        <div class="eval-section" style="margin-top: 20px; display: flex; flex-direction: column; flex: 1; min-height: 200px;">
+            <p style="color: #7f8c8d; font-size: 14px; line-height: 1.6; margin-bottom: 15px; background: #f8f9fa; padding: 12px; border-radius: 6px; flex-shrink: 0; border-left: 4px solid #3498db;">
+                请你为小恐龙补充面对翼龙的避障规则<br>
+                翼龙可能有高、中、低三种高度
+            </p>
+            <div id="symOptionsContainer" style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; margin-bottom: 25px;">
+                <label style="cursor: pointer; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; background: white; transition: all 0.2s; display: flex; align-items: flex-start;"><input type="radio" name="sym_answer" value="A" style="margin-right: 8px; margin-top: 4px;" onchange="updateSymBtnState()"> <div style="flex:1;">A. IF (翼龙距离较近) THEN<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于中高空) THEN 奔跑<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于低空) THEN 下蹲</div></label>
+                <label style="cursor: pointer; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; background: white; transition: all 0.2s; display: flex; align-items: flex-start;"><input type="radio" name="sym_answer" value="B" style="margin-right: 8px; margin-top: 4px;" onchange="updateSymBtnState()"> <div style="flex:1;">B. IF (翼龙距离较近) THEN<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于高空) THEN 奔跑<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于中低空) THEN 下蹲</div></label>
+                <label style="cursor: pointer; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; background: white; transition: all 0.2s; display: flex; align-items: flex-start;"><input type="radio" name="sym_answer" value="C" style="margin-right: 8px; margin-top: 4px;" onchange="updateSymBtnState()"> <div style="flex:1;">C. IF (翼龙距离较近) THEN<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于中空) THEN 下蹲<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于低空) THEN 跳跃</div></label>
+                <label style="cursor: pointer; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; background: white; transition: all 0.2s; display: flex; align-items: flex-start;"><input type="radio" name="sym_answer" value="D" style="margin-right: 8px; margin-top: 4px;" onchange="updateSymBtnState()"> <div style="flex:1;">D. IF (翼龙距离较近) THEN<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于中高空) THEN 下蹲<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IF (翼龙处于低空) THEN 奔跑</div></label>
+            </div>
+            <button id="symSubmitBtn" onclick="submitSymEval()" style="flex-shrink: 0; width: 100%; padding: 14px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); transition: all 0.2s;">提交答案</button>
+        </div>
+        {% elif active_nav in ['sl', 'rl'] %}
+        <div class="eval-section" style="margin-top: 20px; display: flex; flex-direction: column; flex: 1; min-height: 200px;">
+            <p style="color: #7f8c8d; font-size: 13px; line-height: 1.6; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 5px; flex-shrink: 0;">
+                可以多次提交以不断更新方案
+            </p>
+            
+            <textarea id="designInput" oninput="updateTextBtnState()" placeholder="结合刚才所学，写下你的AI实现方案..." style="flex: 1; width: 100%; box-sizing: border-box; padding: 15px; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 14px; line-height: 1.6; color: #34495e; resize: none; outline: none; transition: border-color 0.3s; margin-bottom: 20px; min-height: 150px;" onfocus="this.style.borderColor='#3498db'" onblur="this.style.borderColor='#ecf0f1'"></textarea>
+
+            <button id="textSubmitBtn" onclick="submitEval()" style="flex-shrink: 0; width: 100%; padding: 12px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3); transition: all 0.2s;">提交/更新方案</button>
+        </div>
+        {% endif %}
+        
+        <script>
+            {% if active_nav == 'sym' %}
+            let originalSymAnswer = null;
+
+            function updateSymBtnState() {
+                const btn = document.getElementById('symSubmitBtn');
+                const selected = document.querySelector('input[name="sym_answer"]:checked');
+                if (!selected || selected.value === originalSymAnswer) {
+                    btn.disabled = true;
+                    btn.style.background = '#bdc3c7';
+                    btn.style.cursor = 'not-allowed';
+                    btn.style.boxShadow = 'none';
+                    btn.innerText = originalSymAnswer ? '已提交（无变化）' : '提交答案';
+                } else {
+                    btn.disabled = false;
+                    btn.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
+                    btn.style.cursor = 'pointer';
+                    btn.style.boxShadow = '0 4px 6px rgba(52, 152, 219, 0.3)';
+                    btn.innerText = originalSymAnswer ? '更新答案' : '提交答案';
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                const radios = document.getElementsByName('sym_answer');
+                radios.forEach(r => {
+                    r.addEventListener('change', function() {
+                        radios.forEach(rr => rr.parentElement.style.borderColor = '#ecf0f1');
+                        if(this.checked) this.parentElement.style.borderColor = '#3498db';
+                        updateSymBtnState();
+                    });
+                });
+                
+                try {
+                    const resp = await fetch('/api/get_design/sym');
+                    const data = await resp.json();
+                    if(data.design) {
+                        originalSymAnswer = data.design;
+                        for(let r of radios) {
+                            if(r.value === data.design) {
+                                r.checked = true;
+                                r.parentElement.style.borderColor = '#3498db';
+                                break;
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.error("Error fetching sym design", e);
+                }
+                updateSymBtnState();
+            });
+            
+            async function submitSymEval() {
+                const selected = document.querySelector('input[name="sym_answer"]:checked');
+                if(!selected) {
+                    if (typeof showToast === 'function') showToast("请先选择一个选项！", 'warning'); else alert("请先选择一个选项！");
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/submit_eval/sym', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ answer: selected.value })
+                    });
+                    const data = await resp.json();
+                    if(data.success) {
+                        originalSymAnswer = selected.value;
+                        updateSymBtnState();
+                        if (typeof showToast === 'function') showToast("答题成功！老师已收到你的答案。", 'success'); else alert("答题成功！老师已收到你的答案。");
+                    } else {
+                        if (typeof showToast === 'function') showToast("提交失败：" + (data.error || "未知原因"), 'error'); else alert("提交失败：" + (data.error || "未知原因"));
+                    }
+                } catch(e) {
+                    console.error("提交出错：", e);
+                    if (typeof showToast === 'function') showToast("网络错误，提交未成功", 'error'); else alert("网络错误，提交未成功");
+                }
+            }
+            {% elif active_nav in ['sl', 'rl'] %}
+            let originalDesignText = null;
+
+            function updateTextBtnState() {
+                const btn = document.getElementById('textSubmitBtn');
+                if (!btn) return;
+                const content = document.getElementById('designInput').value.trim();
+                
+                if (content === (originalDesignText || "")) {
+                    btn.disabled = true;
+                    btn.style.background = '#bdc3c7';
+                    btn.style.cursor = 'not-allowed';
+                    btn.style.boxShadow = 'none';
+                    btn.innerText = (originalDesignText !== null && originalDesignText !== "") ? '已提交（无变化）' : '提交方案';
+                } else {
+                    btn.disabled = false;
+                    btn.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
+                    btn.style.cursor = 'pointer';
+                    btn.style.boxShadow = '0 4px 6px rgba(52, 152, 219, 0.3)';
+                    btn.innerText = (originalDesignText !== null && originalDesignText !== "") ? '更新方案' : '提交方案';
+                }
+            }
+
+            // 获取已有的设计方案
+            document.addEventListener("DOMContentLoaded", async () => {
+                const designInput = document.getElementById('designInput');
+                if(!designInput) return;
+                try {
+                    const resp = await fetch('/api/get_design/{{ active_nav }}');
+                    const data = await resp.json();
+                    if(data.design) {
+                        originalDesignText = data.design;
+                        designInput.value = data.design;
+                    } else {
+                        originalDesignText = "";
+                    }
+                } catch(e) {
+                    console.error("Error fetching initial design", e);
+                    originalDesignText = "";
+                }
+                updateTextBtnState();
+            });
+            
+            async function submitEval() {
+                const content = document.getElementById('designInput').value.trim();
+                if(content.length < 10) {
+                    if (typeof showToast === 'function') showToast("请至少输入10个字符的设计方案全流程说明后再提交！", 'warning'); else alert("请至少输入10个字符的设计方案全流程说明后再提交！");
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/submit_eval/{{ active_nav }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ answers: content })
+                    });
+                    const data = await resp.json();
+                    if(data.success) {
+                        if (typeof showToast === 'function') showToast("设计方案提交成功！老师已收到你的最新版本。", 'success'); else alert("设计方案提交成功！老师已收到你的最新版本。");
+                    } else {
+                        if (typeof showToast === 'function') showToast("提交失败：" + (data.error || "未知原因"), 'error'); else alert("提交失败：" + (data.error || "未知原因"));
+                    }
+                } catch(e) {
+                    console.error("提交出错：", e);
+                    if (typeof showToast === 'function') showToast("网络错误，提交未成功", 'error'); else alert("网络错误，提交未成功");
+                }
+            }
+            {% endif %}
+        </script>
+        
+        
+    </div>
+</div>
+{% endif %}
+
+<script>
+    function toggleLeftDrawer() {
+        const drawer = document.getElementById('leftDrawer');
+        if (!drawer) return;
+        const handle = drawer.querySelector('.drawer-handle');
+        drawer.classList.toggle('open');
+        handle.innerText = drawer.classList.contains('open') ? '收回' : '展开';
+    }
+
+    async function toggleRightDrawer() {
+        const drawer = document.getElementById('rightDrawer');
+        const handle = drawer.querySelector('.drawer-handle');
+        
+        // 已经展开状态下，直接允许收起
+        if (drawer.classList.contains('open')) {
+            drawer.classList.remove('open');
+            handle.innerText = '展开';
+            return;
+        }
+
+        // 取消了开放答题和开放手玩权限，直接打开
+        drawer.classList.add('open');
+        handle.innerText = '收回';
+    }
+</script>

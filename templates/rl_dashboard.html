@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>强化学习：分布式 Actor-Learner 联邦训练台</title>
+    <!-- 引入中央大脑需要的 TF.js -->
+    <script src="/static/lib/tf.min.js"></script>
+    <script src="/static/lib/chart.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; background-color: #1e1e1e; font-family: 'Open Sans', 'Microsoft YaHei', sans-serif; display: flex; flex-direction: column; overflow: hidden; color: #ddd; }
+        
+        
+        
+        
+        
+        .stats-panel { display: flex; gap: 15px; font-family: monospace; font-size: 12px; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 100; color: #ecf0f1; width: max-content; }
+        .stat-item { background: rgba(44, 62, 80, 0.85); padding: 4px 12px; border-radius: 6px; border: 1px solid #34495e; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .stat-highlight { color: #f1c40f; font-weight: bold; font-size: 14px; }
+        .container { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 4px; min-height: 0; position: absolute; top: 46px; bottom: 50px; left: 0; right: 0; }
+        .demo-wrapper { flex: 0 0 50%; position: relative; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 5px rgba(0,0,0,0.5); }
+        .actors-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; min-height: 0; }
+        .frame-wrapper { position: relative; background: #fff; border-radius: 8px; overflow: hidden; }
+        .frame-header { display: none; } /* 彻底隐藏所有标题 */
+        iframe { width: 100%; height: 100%; border: none; outline: none; }
+        .control-btns { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; z-index: 100; }
+        .icon-btn { position: relative; background: rgba(255,255,255,0.9); color: #34495e; border: 2px solid #bdc3c7; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.25); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .icon-btn:hover { background: #fff; transform: scale(1.15); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .icon-btn:active { transform: scale(0.95); }
+        
+        /* CSS瞬时提示文字 */
+        .icon-btn[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(44, 62, 80, 0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 1000; font-family: sans-serif; font-weight: normal;}
+        .icon-btn[data-tooltip]:hover::after { opacity: 1; }
+    </style>
+</head>
+<body>
+    {% set header_title = '实验3' %}
+    {% include 'components/header.html' %}
+
+    <div class="container" style="box-sizing: border-box;">
+        <!-- 顶部：演示区和图表区 -->
+        <div class="demo-wrapper">
+            <iframe id="demoFrame" src="/task/rl?mode=demo" title="演示区" style="width: 100%; height: 100%;"></iframe>
+            <div style="position: absolute; right: 20px; top: 20px; width: 300px; height: 150px; background: rgba(255,255,255,0.8); border-radius: 8px; padding: 10px; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 50;">
+                <canvas id="demoScoreChart"></canvas>
+            </div>
+            <!-- 开始/暂停 和 清空 按钮块 -->
+            <div class="control-btns">
+                <div class="icon-btn" id="btn-pause-resume" data-tooltip="开始训练">
+                    <svg id="icon-play" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path>
+                        <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"></path>
+                        <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"></path>
+                        <path d="M17.599 6.5a3 3 0 0 0 .399-1.375"></path>
+                        <path d="M6.002 5.125A3 3 0 0 0 6.401 6.5"></path>
+                        <path d="M3.477 10.896a4 4 0 0 1 .585-.396"></path>
+                        <path d="M19.938 10.5a4 4 0 0 1 .585.396"></path>
+                        <path d="M6 18a4 4 0 0 1-1.967-.516"></path>
+                        <path d="M19.967 17.484A4 4 0 0 1 18 18"></path>
+                    </svg>
+                    <svg id="icon-pause" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 信息面板 -->
+            <div class="stats-panel">
+                <div class="stat-item">最高分: <span id="c-high" class="stat-highlight">0</span></div>
+                <div class="stat-item">训练轮数: <span id="c-eps" class="stat-highlight">0</span></div>
+                <div class="stat-item">近10局平均: <span id="c-avg" class="stat-highlight">0</span></div>
+                <div class="stat-item">训练时长: <span id="c-time" class="stat-highlight">00:00</span></div>
+            </div>
+        </div>
+
+        <!-- 底部：4个打工人 -->
+        <div class="actors-grid">
+            <div class="frame-wrapper">
+                <h4 class="frame-header train">⚙️ Actor 1 (高速采集舱)</h4>
+                <iframe id="train1" src="/task/rl?mode=actor" title="Actor1"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <h4 class="frame-header train">⚙️ Actor 2 (高速采集舱)</h4>
+                <iframe id="train2" src="/task/rl?mode=actor" title="Actor2"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <h4 class="frame-header train">⚙️ Actor 3 (高速采集舱)</h4>
+                <iframe id="train3" src="/task/rl?mode=actor" title="Actor3"></iframe>
+            </div>
+            <div class="frame-wrapper">
+                <h4 class="frame-header train">⚙️ Actor 4 (高速采集舱)</h4>
+                <iframe id="train4" src="/task/rl?mode=actor" title="Actor4"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 中央 Learner -->
+    <script>
+        class CentralLearner {
+            constructor() {
+                // 与 Actor 保持一致：16 维状态空间，4 维动作空间
+                this.stateSize = 16;
+                this.actionSize = 4;
+                this.gamma = 0.95;
+                this.batchSize = 128;
+                
+                this.memory = [];
+                this.badMemory = [];
+                this.flyMemory = [];
+                this.goodMemory = [];
+                
+                this.maxMemory = 200000;
+                this.maxBadMemory = 50000;
+                this.maxFlyMemory = 50000;
+                this.maxGoodMemory = 50000;
+
+                this.episodes = 0;
+                this.highestScore = 0;
+                this.currentLoss = 0.0;
+                this.currentActorScores = {};
+                this.isReplaying = false;
+                this.updateTargetCounter = 0;
+                
+                this.recentScores = [];
+                this.startTime = null;
+
+                this.initModel();
+            }
+
+                        async initModel() {
+                await tf.setBackend('cpu');
+                this.model = tf.sequential();
+                this.model.add(tf.layers.dense({ units: 64, inputShape: [this.stateSize], activation: 'relu' }));
+                this.model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+                this.model.add(tf.layers.dense({ units: this.actionSize, activation: 'linear' }));
+                
+                try {
+                    let slModel = await tf.loadLayersModel('localstorage://sl_pretrained_model');
+                    let slW = slModel.getWeights();
+                    let rlW = this.model.getWeights();
+                    if (slW.length >= 4 && rlW.length >= 4) {
+                        rlW[0] = slW[0]; rlW[1] = slW[1]; 
+                        rlW[2] = slW[2]; rlW[3] = slW[3];
+                        try { rlW[4] = slW[4]; rlW[5] = slW[5]; } catch(e) {}
+                        this.model.setWeights(rlW);
+                        console.log("成功继承实验2模型！");
+                    }
+                } catch(e) {
+                    console.log("无预训练模型，从零开始");
+                }
+
+                // 【根治远期退化补丁：降息与稳压】
+                // 1. 降低学习率（从 0.001 降到 0.00025），防止后期由于权重步子迈得太大直接跨过最优解并发生震荡。
+                // 2. 将损失函数从易爆炸的 meanSquaredError 换为 Huber Loss（对大误差进行了平滑的线性惩罚，抵抗极端异常样本轰炸）。
+                this.model.compile({ optimizer: tf.train.adam(0.00025), loss: tf.losses.huberLoss }); 
+
+                this.targetModel = tf.sequential();
+                this.targetModel.add(tf.layers.dense({ units: 64, inputShape: [this.stateSize], activation: 'relu' }));
+                this.targetModel.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+                this.targetModel.add(tf.layers.dense({ units: this.actionSize, activation: 'linear' }));
+                this.targetModel.setWeights(this.model.getWeights());
+            }
+
+            addExperienceBatch(batch) {
+                for(let exp of batch) {
+                    this.memory.push(exp);
+                    if(this.memory.length > this.maxMemory) this.memory.shift();
+                    
+                    // 判断是否为翼龙(状态3,6,9为前方物体高度)
+                    if (exp.state[3] < 0.6 || exp.state[6] < 0.6 || exp.state[9] < 0.6) {
+                        this.flyMemory.push(exp);
+                        if(this.flyMemory.length > this.maxFlyMemory) this.flyMemory.shift();
+                    }
+
+                    if (exp.reward < 0 || exp.done) {
+                        this.badMemory.push(exp);
+                        if(this.badMemory.length > this.maxBadMemory) this.badMemory.shift();
+                    }
+
+                    if (exp.reward > 20) {
+                        // 修正：分布式情况下，追溯强化应当只发生在 Actor 内部。这里只需直接记录高价值样本！
+                        this.goodMemory.push(exp);
+                        while(this.goodMemory.length > this.maxGoodMemory) this.goodMemory.shift();
+                    }
+                }
+            }
+
+            async replay() {
+                if (!this.model) return;
+                if (this.hasConverged) return; // 触发收敛大满贯后，冻结神经网络（不再被新数据污染）
+                if (this.memory.length < this.batchSize || this.isReplaying) return;
+                this.isReplaying = true;
+
+                try {
+                    let batch = [];
+                    for (let i = 0; i < this.batchSize; i++) {
+                        batch.push(this.memory[Math.floor(Math.random() * this.memory.length)]);
+                    }
+                    
+                    if (this.badMemory.length > 0) {
+                        let badSampleCount = Math.min(32, this.badMemory.length);
+                        for(let i=0; i<badSampleCount; i++) {
+                            batch[i] = this.badMemory[Math.floor(Math.random() * this.badMemory.length)]; 
+                        }
+                    }
+                    
+                    if (this.flyMemory.length > 0) {
+                        let flySampleCount = Math.min(16, this.flyMemory.length);
+                        for (let i = 0; i < flySampleCount; i++) {
+                            let insertIdx = 32 + i;
+                            batch[insertIdx] = this.flyMemory[Math.floor(Math.random() * this.flyMemory.length)];
+                        }
+                    }
+
+                    if (this.goodMemory.length > 0) {
+                        let goodSampleCount = Math.min(16, this.goodMemory.length);
+                        for (let i = 0; i < goodSampleCount; i++) {
+                            let insertIdx = 32 + 16 + i; 
+                            batch[insertIdx] = this.goodMemory[Math.floor(Math.random() * this.goodMemory.length)]; 
+                        }
+                    }
+
+                    const states = batch.map(b => b.state);
+                    const nextStates = batch.map(b => b.nextState);
+                    const statesT = tf.tensor2d(states);
+                    const nextStatesT = tf.tensor2d(nextStates);
+                    
+                    const currentQsT = this.model.predict(statesT);
+                    const nextQsT = this.targetModel.predict(nextStatesT);
+
+                    const currentQsArr = await currentQsT.array();
+                    const nextQsArr = await nextQsT.array();
+
+                    statesT.dispose(); nextStatesT.dispose();
+                    currentQsT.dispose(); nextQsT.dispose();
+
+                    let x = [];
+                    let y = [];
+
+                    for (let i = 0; i < this.batchSize; i++) {
+                        let target = batch[i].reward;
+                        if (!batch[i].done) {
+                            let g = batch[i].gammaPower !== undefined ? batch[i].gammaPower : this.gamma;
+                            target = batch[i].reward + g * Math.max(...nextQsArr[i]);
+                        }
+                        let targetF = currentQsArr[i];
+                        targetF[batch[i].action] = target;
+                        x.push(batch[i].state);
+                        y.push(targetF);
+                    }
+
+                    await tf.nextFrame();
+
+                    const xT = tf.tensor2d(x);
+                    const yT = tf.tensor2d(y);
+                    const res = await this.model.fit(xT, yT, { epochs: 1, verbose: 0 });
+                    this.currentLoss = res.history.loss[0];
+                    
+                    this.updateTargetCounter++;
+                    if (this.updateTargetCounter > 150) { 
+                        this.targetModel.setWeights(this.model.getWeights());
+                        this.updateTargetCounter = 0;
+                    }
+
+                    xT.dispose(); yT.dispose();
+                } finally {
+                    this.isReplaying = false;
+                }
+            }
+
+            broadcastWeights() {
+                if(!this.model) return;
+                try {
+                    const weights = this.model.getWeights().map(w => w.arraySync());
+                    const payload = {
+                        type: 'RL_WEIGHTS_SYNC',
+                        weights: weights,
+                        episodes: this.episodes,
+                        highestScore: this.highestScore
+                    };
+                    
+                    // 发送给所有 5 个子窗口
+                    ['demoFrame', 'train1', 'train2', 'train3', 'train4'].forEach(id => {
+                        const iframe = document.getElementById(id);
+                        if(iframe && iframe.contentWindow) {
+                            iframe.contentWindow.postMessage(payload, '*');
+                        }
+                    });
+                    this.updateUI();
+                } catch(e) {
+                }
+            }
+
+            updateUI() {
+                document.getElementById('c-high').innerText = this.highestScore;
+                document.getElementById('c-eps').innerText = this.episodes;
+                
+                const avgSpan = document.getElementById('c-avg');
+                if (avgSpan) {
+                    let allScores = [...this.recentScores];
+                    for (let id in this.currentActorScores) {
+                        allScores.push(this.currentActorScores[id]);
+                    }
+                    if (allScores.length > 0) {
+                        let windowScores = allScores.slice(-10);
+                        let sum = windowScores.reduce((a, b) => a + b, 0);
+                        avgSpan.innerText = Math.round(sum / windowScores.length);
+                    } else {
+                        avgSpan.innerText = 0;
+                    }
+                }
+
+                const timeSpan = document.getElementById('c-time');
+                if (timeSpan && this.startTime) {
+                    let now = (this.hasConverged && this.convergedTime) ? this.convergedTime : Date.now();
+                    let elapsed = Math.floor((now - this.startTime) / 1000);
+                    let m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                    let s = (elapsed % 60).toString().padStart(2, '0');
+                    timeSpan.innerText = `${m}:${s}`;
+                }
+            }
+        }
+
+        const learner = new CentralLearner();
+        let trainingInterval = null;
+        let syncInterval = null;
+        
+        let demoScoreChart = null;
+        const chartTimes = [];
+        const chartScores = [];
+
+        function initChart() {
+            const ctx = document.getElementById('demoScoreChart');
+            if (!ctx) return;
+            demoScoreChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartTimes,
+                    datasets: [{
+                        label: '近10局均分',
+                        data: chartScores,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#ecf0f1' } },
+                        x: { display: false, grid: { display: false } }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        title: { display: true, position: 'bottom', text: '近10局平均分变化图', font: { size: 14 }, color: '#2c3e50', padding: { top: 10 } }
+                    }
+                }
+            });
+        }
+        initChart();
+        setInterval(() => {
+            // 当点击了暂停，或者已经收敛（自动停止训练）后，图表停止更新
+            if (demoScoreChart && learner && learner.recentScores && !isClusterPaused && !learner.hasConverged) {
+                let allScores = [...learner.recentScores];
+                for (let id in learner.currentActorScores) {
+                    allScores.push(learner.currentActorScores[id]);
+                }
+                let windowScores = allScores.slice(-10);
+                let sum = windowScores.reduce((a, b) => a + b, 0);
+                let avg = windowScores.length > 0 ? Math.round(sum / windowScores.length) : 0;
+                
+                // 触发收敛：当最近均分已超过 3000 分，主脑固化！
+                if (avg >= 3000 && !learner.hasConverged) {
+                    learner.hasConverged = true;
+                    learner.convergedTime = Date.now();
+                    // 在页面上做一些视觉提示
+                    document.getElementById('c-avg').style.color = '#e74c3c';
+                    document.getElementById('c-avg').innerText = avg + " (已收敛固化, 3000+)";
+
+                    // 停止下方4个训练Actor的画面，演示区保留继续展示神功
+                    ['train1', 'train2', 'train3', 'train4'].forEach(id => {
+                        const iframe = document.getElementById(id);
+                        if(iframe && iframe.contentWindow) iframe.contentWindow.postMessage({type: 'PAUSE_ACTOR'}, '*');
+                    });
+                }
+
+                chartTimes.push('');
+                chartScores.push(avg);
+                if (chartScores.length > 60) {
+                    chartTimes.shift();
+                    chartScores.shift();
+                }
+                demoScoreChart.update();
+            }
+        }, 1000);
+
+        // 监听 Actor 数据
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (data && data.type === 'ACTOR_CURRENT_SCORE') {
+                learner.currentActorScores[data.actorId] = data.score;
+            } else if (data && data.type === 'EPISODE_BATCH') {
+                if (data.actorId) {
+                    delete learner.currentActorScores[data.actorId];
+                }
+                learner.episodes++;
+                learner.highestScore = Math.max(learner.highestScore, data.score);
+                
+                learner.recentScores.push(data.score);
+                if(learner.recentScores.length > 10) {
+                    learner.recentScores.shift();
+                }
+
+                try {
+                    learner.addExperienceBatch(data.experiences);
+                } catch (e) {
+                }
+                learner.updateUI(); // 实时刷新看板
+            } // CHART LOGIC REMOVED
+        });
+
+        // ================= 教具控制系统 =================
+        let isClusterPaused = true;
+        
+        const btnPause = document.getElementById('btn-pause-resume');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        
+        btnPause.style.borderColor = '#27ae60';
+        btnPause.style.color = '#27ae60';
+        btnPause.setAttribute('data-tooltip', '开始训练');
+
+        btnPause.addEventListener('click', () => {
+            isClusterPaused = !isClusterPaused;
+            if (isClusterPaused) {
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+                btnPause.style.borderColor = '#27ae60';
+                btnPause.style.color = '#27ae60';
+                btnPause.setAttribute('data-tooltip', '开始训练');
+                // 清理主脑训练循环
+                if(trainingInterval) clearInterval(trainingInterval);
+                if(syncInterval) clearInterval(syncInterval);
+                trainingInterval = null;
+                syncInterval = null;
+                // 向所有子窗口发 Pause 信号
+                ['demoFrame', 'train1', 'train2', 'train3', 'train4'].forEach(id => {
+                    const iframe = document.getElementById(id);
+                    if(iframe && iframe.contentWindow) iframe.contentWindow.postMessage({type: 'PAUSE_ACTOR'}, '*');
+                });
+            } else {
+                iconPlay.style.display = 'none';
+                iconPause.style.display = 'block';
+                btnPause.style.borderColor = '#e74c3c';
+                btnPause.style.color = '#e74c3c';
+                btnPause.setAttribute('data-tooltip', '暂停训练');
+                startCluster(); // 重启主脑心跳
+                // 如果是刚刚启动还没有初始化或者因为什么原因挂了
+                ['demoFrame', 'train1', 'train2', 'train3', 'train4'].forEach(id => {
+                    const iframe = document.getElementById(id);
+                    if(iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({type: 'RESUME_ACTOR'}, '*');
+                        iframe.contentWindow.postMessage({type: 'START_ACTOR'}, '*');
+                    }
+                });
+            }
+        });
+
+
+        // 提取启动集训为一个单独的函数，以便可以在页面加载时自动执行
+        function startCluster() {
+            if(!trainingInterval) {
+                learner.startTime = Date.now();
+                setInterval(() => learner.updateUI(), 1000); // 每秒刷新一次时长
+
+                trainingInterval = setInterval(() => {
+                    learner.replay();
+                }, 50); 
+                
+                syncInterval = setInterval(() => {
+                    learner.broadcastWeights();
+                }, 2000);
+
+                // 一键全部激活
+                ['demoFrame', 'train1', 'train2', 'train3', 'train4'].forEach(id => {
+                    const iframe = document.getElementById(id);
+                    if(iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({type: 'START_ACTOR'}, '*');
+                    }
+                });
+            }
+        }
+
+    </script>
+  {% include 'components/drawers.html' %}
+
+  {% set active_nav = 'rl' %}
+  {% include 'components/bottom_nav.html' %}
+
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>AI玩转小恐龙实验室</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: radial-gradient(circle at center, #1b2741 0%, #080b11 100%); }
+        .container { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 80px 40px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); width: 600px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        h1 { color: #ecf0f1; margin: 0; font-size: 42px; letter-spacing: 2px;}
+        
+        .top-nav { position: absolute; top: 20px; right: 30px; font-size: 14px; color: #a0b2c6; }
+        .top-nav a { color: #e74c3c; text-decoration: none; font-weight: bold; margin-left: 10px; }
+        .top-nav a:hover { text-decoration: underline; color: #ff7675; }
+
+        .btn-start {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 20px 80px;
+            font-size: 32px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+            transition: all 0.3s ease;
+            letter-spacing: 8px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(79, 172, 254, 0.6);
+        }
+
+        .btn-start:active {
+            transform: translateY(2px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Notification */
+        #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(231, 76, 60, 0.9); color: white; padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 18px; display: none; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        你好，{% if user_id == 'teacher_admin' %}教师{% else %}{{ user_id }}{% endif %} <a href="/logout">[退出]</a>
+    </div>
+
+    <div class="container">
+        <div>
+            <button class="btn-start" onclick="handleStart()">进入AI玩转<br>小恐龙实验室</button>
+        </div>
+    </div>
+
+    <div id="toast">等待教师开始上课</div>
+
+    <script>
+    const userRole = "{{ role }}";
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        if (msg) toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    async function handleStart() {
+        if (userRole === 'teacher') {
+            try {
+                // 老师点击开始上课，向后端发送发令枪
+                const resp = await fetch('/api/start_class', { method: 'POST' });
+                const json = await resp.json();
+                if (json.success) {
+                    window.location.href = '/task/sym';
+                } else {
+                    showToast('请求失败！');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('网络出错！');
+            }
+        } else {
+            // 学生/专家 点击，去探测老师是否已经开放了sym页面
+            try {
+                const resp = await fetch(`/api/task_state/sym?t=${new Date().getTime()}`, { cache: 'no-store' });
+                const data = await resp.json();
+                if (data.unlocked) {
+                    window.location.href = '/task/sym';
+                } else {
+                    showToast('请稍等片刻，教师暂未开放上课！');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('网络出错！');
+            }
+        }
+    }
+    </script>
+</body>
+</html>
